@@ -1,10 +1,10 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 
 // Signup
 const registerUser = async (req, res) => {
   const { name, email, phone, password, confirmPassword } = req.body;
+
   if (password !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
@@ -16,7 +16,8 @@ const registerUser = async (req, res) => {
     const user = new User({ name, email, phone, password });
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully", user });
+    const { password: _, ...userData } = user.toObject(); // exclude password
+    res.status(201).json({ message: "User registered successfully", user: userData });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -25,35 +26,48 @@ const registerUser = async (req, res) => {
 // Login
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ message: "Incorrect password" });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Incorrect password" });
 
-  // You can use JWT or session-based authentication
-  const token = jwt.sign({ id: user._id }, "secretKey", { expiresIn: "1d" });
-
-  res.status(200).json({ message: "Login successful", token });
+    const { password: _, ...userData } = user.toObject(); // exclude password
+    res.status(200).json({ message: "Login successful", user: userData });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // Get Profile
 const getProfile = async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.json(user);
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // Update Profile
 const updateProfile = async (req, res) => {
   try {
     const updates = req.body;
-    if (updates.password) delete updates.password;
+    if (updates.password) delete updates.password; // Prevent password update this way
 
-    const updated = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const updated = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select("-password");
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getProfile,
+  updateProfile,
 };
