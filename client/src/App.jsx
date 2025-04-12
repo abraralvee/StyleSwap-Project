@@ -7,6 +7,8 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 import ForgotPassword from './components/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import { ProductList } from "./components/ProductList";
+import { ProductDetails } from "./components/ProductDetails";
 
 function App() {
   return (
@@ -14,6 +16,13 @@ function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <Routes>
+          {/* 👕 Homepage shows product list */}
+          <Route path="/" element={<ProductList />} />
+
+          {/* 🔍 Product details page */}
+          <Route path="/product/:id" element={<ProductDetails />} />
+
+          {/* 🔐 Auth and user pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
