@@ -7,6 +7,7 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 import ForgotPassword from './components/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './components/AdminDashboard'; //
 import { ProductList } from "./components/ProductList";
 import { ProductDetails } from "./components/ProductDetails";
 
@@ -16,13 +17,8 @@ function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <Routes>
-          {/* 👕 Homepage shows product list */}
           <Route path="/" element={<ProductList />} />
-
-          {/* 🔍 Product details page */}
           <Route path="/product/:id" element={<ProductDetails />} />
-
-          {/* 🔐 Auth and user pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -31,6 +27,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          {/* ✅ Admin Dashboard Route */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

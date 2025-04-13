@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
@@ -29,10 +30,12 @@ async function main() {
   const userRoutes = require("./routes/userRoute");
   const cartRoutes = require("./routes/cartRoute");
   const wishlistRoutes = require("./routes/wishlistRoute");
+  const adminRoutes = require("./routes/adminRoute");
   app.use("/api/cart", cartRoutes);
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/products", productRoutes);
+  app.use("/api/admin", adminRoutes);
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);

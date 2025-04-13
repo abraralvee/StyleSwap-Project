@@ -25,11 +25,24 @@ const registerUser = async (req, res) => {
 
 // Login
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, isAdminLogin } = req.body;
 
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.isBanned && user.isBanActive()) {
+      return res.status(403).json({ 
+        message: "Your account has been banned",
+        banExpiry: user.banExpiry 
+      });
+
+    }
+
+    //AdminLogin check admin
+    if (isAdminLogin && !user.isAdmin) {
+      return res.status(403).json({ message: "Access denied. Admin only." });
+    }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Incorrect password" });

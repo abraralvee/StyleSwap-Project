@@ -10,14 +10,23 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:1226/api/users/login', formData);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const endpoint = isAdmin ? 'http://localhost:1226/api/admin/login' : 'http://localhost:1226/api/users/login';
+      const response = await axios.post(endpoint, formData);
+
+      if (isAdmin) {
+        localStorage.setItem('adminToken', response.data.token);
+        navigate('/admin');
+      } else {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        navigate('/profile');
+      }
+
       toast.success('Login successful!');
-      navigate('/profile');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     }
@@ -78,6 +87,20 @@ const Login = () => {
                   Forgot your password?
                 </Link>
               </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="admin-login"
+                name="admin-login"
+                type="checkbox"
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                checked={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.checked)}
+              />
+              <label htmlFor="admin-login" className="ml-2 block text-sm text-gray-900">
+                Login as Admin
+              </label>
             </div>
 
             <div>
