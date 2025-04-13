@@ -36,15 +36,14 @@ const loginUser = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Incorrect password" });
 
-    const { password: _, ...userData } = user.toObject(); // exclude password
+    const { password: _, ...userData } = user.toObject(); 
     res.status(200).json({ message: "Login successful", user: userData });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get Profile
-const getProfile = async (req, res) => {
+/*const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -52,13 +51,13 @@ const getProfile = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
+};*/
 
 // Update Profile
 const updateProfile = async (req, res) => {
   try {
     const updates = req.body;
-    if (updates.password) delete updates.password; // Prevent password update this way
+    if (updates.password) delete updates.password; 
 
     const updated = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select("-password");
     res.json(updated);
@@ -77,7 +76,7 @@ const forgotPassword = async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
     user.resetToken = token;
-    user.tokenExpiry = Date.now() + 3600000; // 1 hour
+    user.tokenExpiry = Date.now() + 3600000; 
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${token}`;
@@ -120,7 +119,7 @@ const resetPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
-    user.password = password; // Let the pre-save hook hash this
+    user.password = password; 
     user.resetToken = undefined;
     user.tokenExpiry = undefined;
     await user.save();
