@@ -7,7 +7,7 @@ const port = process.env.PORT || 1226;
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
-
+require("dotenv").config();
 app.use(express.static("public"));
 
 async function main() {
