@@ -5,45 +5,6 @@ import { AddProductForm } from "./AddProductForm";
 import axios from "axios";
 import PacmanLoader from "react-spinners/PacmanLoader";
 
-// Mock data for demonstration
-// const mockProducts = [
-//   {
-//     _id: "1",
-//     name: "Vintage Denim Jacket",
-//     size: "M",
-//     color: "Blue",
-//     gender: "Unisex",
-//     condition: "Good",
-//     image:
-//       "https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?auto=format&fit=crop&q=80&w=800",
-//     price: "2499",
-//     duration: "30 days",
-//   },
-//   {
-//     _id: "2",
-//     name: "Summer Floral Dress",
-//     size: "S",
-//     color: "Pink",
-//     gender: "Female",
-//     condition: "Like New",
-//     image:
-//       "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=800",
-//     price: "1899",
-//     duration: "15 days",
-//   },
-//   {
-//     _id: "3",
-//     name: "Classic White Sneakers",
-//     size: "42",
-//     color: "White",
-//     gender: "Unisex",
-//     condition: "New",
-//     image:
-//       "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?auto=format&fit=crop&q=80&w=800",
-//     price: "3499",
-//     duration: "45 days",
-//   },
-// ];
 
 export function ProductList() {
   const [products, setProducts] = useState([]);

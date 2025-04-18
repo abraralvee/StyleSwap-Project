@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, ShoppingCart, Heart } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -23,6 +23,23 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {/* Show Cart and Wishlist only if the user is logged in */}
+                <Link
+                  to="/cart"
+                  className="flex items-center text-gray-700 hover:text-indigo-600"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-1" />
+                  Cart
+                </Link>
+                <Link
+                  to="/wishlist"
+                  className="flex items-center text-gray-700 hover:text-indigo-600"
+                >
+                  <Heart className="w-5 h-5 mr-1" />
+                  Wishlist
+                </Link>
+
+                {/* Profile and Logout links */}
                 <Link
                   to="/profile"
                   className="flex items-center text-gray-700 hover:text-indigo-600"
@@ -40,6 +57,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                {/* Only show Login and Register links if the user is not logged in */}
                 <Link
                   to="/login"
                   className="text-gray-700 hover:text-indigo-600"

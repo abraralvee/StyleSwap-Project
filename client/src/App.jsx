@@ -10,6 +10,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ProductList } from "./components/ProductList";
 import { ProductDetails } from "./components/ProductDetails";
 import ResetPassword from './components/ResetPassword';
+import Cart from './components/Cart';
+import Wishlist from './components/Wishlist';
+
 
 function App() {
   return (
@@ -17,13 +20,9 @@ function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <Routes>
-          {/* 👕 Homepage shows product list */}
+          
           <Route path="/" element={<ProductList />} />
-
-          {/* 🔍 Product details page */}
           <Route path="/product/:id" element={<ProductDetails />} />
-
-          {/* 🔐 Auth and user pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -34,6 +33,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute>
+                <Wishlist />
               </ProtectedRoute>
             }
           />

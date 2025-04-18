@@ -18,7 +18,7 @@ const registerUser = async (req, res) => {
     const user = new User({ name, email, phone, password });
     await user.save();
 
-    const { password: _, ...userData } = user.toObject(); // exclude password
+    const { password: _, ...userData } = user.toObject();
     res.status(201).json({ message: "User registered successfully", user: userData });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -43,15 +43,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-/*const getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};*/
 
 // Update Profile
 const updateProfile = async (req, res) => {
@@ -81,7 +72,6 @@ const forgotPassword = async (req, res) => {
 
     const resetLink = `http://localhost:5173/reset-password/${token}`;
 
-    // Send email using nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -125,6 +115,16 @@ const resetPassword = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
