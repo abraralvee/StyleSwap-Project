@@ -37,8 +37,7 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  /*
-  renterId: {
+  /*renterId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
