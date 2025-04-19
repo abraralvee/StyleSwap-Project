@@ -29,6 +29,8 @@ async function main() {
   const userRoutes = require("./routes/userRoute");
   const cartRoutes = require("./routes/cartRoute");
   const wishlistRoutes = require("./routes/wishlistRoute");
+  const orderRoutes = require('./routes/orderRoute');
+  app.use('/api/orders', orderRoutes);
   app.use("/api/cart", cartRoutes);
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/users", userRoutes);

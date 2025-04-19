@@ -37,8 +37,14 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  /*
+  renterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }*/
 });
 
-const product = mongoose.model("Product", productSchema);
+const product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
 module.exports = product;

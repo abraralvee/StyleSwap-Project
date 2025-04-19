@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';  // import Link for navigation
+import { Link } from 'react-router-dom';
 
 const Cart = () => {
   const [cart, setCart] = useState({ products: [] });
@@ -13,7 +13,7 @@ const Cart = () => {
     if (user._id) {
       fetchCart();
     } else {
-      setLoading(false); // No need to fetch if user is not logged in
+      setLoading(false);
     }
   }, [user]);
 
@@ -63,6 +63,29 @@ const Cart = () => {
       toast.success('Cart cleared');
     } catch (error) {
       toast.error('Failed to clear cart');
+    }
+  };
+
+  const placeOrder = async () => {
+    if (cart.products.length === 0) {
+      toast.error('Cart is empty');
+      return;
+    }
+
+    try {
+      for (const item of cart.products) {
+        await axios.post('http://localhost:1226/api/orders/place', {
+          userId: user._id,
+          productId: item.productId._id,
+          duration: 7 // default rental period
+        });
+      }
+
+      toast.success('Order(s) placed successfully!');
+      await clearCart();
+    } catch (error) {
+      toast.error('Failed to place order');
+      console.error(error);
     }
   };
 
@@ -150,10 +173,15 @@ const Cart = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-8 flex justify-end">
-                  <div className="text-right">
-                    <p className="text-lg font-medium text-gray-900">Total: ৳{total}</p>
-                  </div>
+
+                <div className="mt-8 flex justify-between items-center">
+                  <p className="text-lg font-medium text-gray-900">Total: ৳{total}</p>
+                  <button
+                    onClick={placeOrder}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition duration-200"
+                  >
+                    Place Order
+                  </button>
                 </div>
               </>
             )}

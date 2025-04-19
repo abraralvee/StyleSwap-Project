@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -11,6 +11,23 @@ const Profile = () => {
     email: user.email || '',
     phone: user.phone || '',
   });
+
+  const [orders, setOrders] = useState([]);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get(`http://localhost:1226/api/orders/user/${user._id}`);
+      setOrders(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch orders');
+    }
+  };
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchOrders();
+    }
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,10 +51,9 @@ const Profile = () => {
             
             {isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Name
-                  </label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="h-5 w-5 text-gray-400" />
@@ -52,10 +68,9 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-gray-400" />
@@ -70,10 +85,9 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Phone */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Phone className="h-5 w-5 text-gray-400" />
@@ -88,17 +102,18 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Buttons */}
                 <div className="flex space-x-4">
                   <button
                     type="submit"
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="py-2 px-4 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
                   >
                     Save Changes
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="py-2 px-4 rounded-md bg-white text-gray-700 border hover:bg-gray-50"
                   >
                     Cancel
                   </button>
@@ -120,12 +135,31 @@ const Profile = () => {
                 </div>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="py-2 px-4 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
                 >
                   Edit Profile
                 </button>
               </div>
             )}
+
+            {/* Orders Section */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Previous Rentals / Orders</h3>
+              {orders.length === 0 ? (
+                <p className="text-gray-500">No orders found.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {orders.map((order) => (
+                    <li key={order._id} className="bg-gray-50 p-4 rounded-md shadow-sm border">
+                      <p><strong>Product:</strong> {order.product?.name}</p>
+                      <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
+                      <p><strong>Duration:</strong> {order.duration} days</p>
+                      <p><strong>Status:</strong> {order.status}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </div>
