@@ -19,7 +19,7 @@ export function ProductDetails() {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          "http://localhost:1226/api/products/view-product/${id}"
+          `http://localhost:1226/api/products/view-product/${id}`
         );
 
         if (response.data.success) {
