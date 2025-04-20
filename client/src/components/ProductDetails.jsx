@@ -12,7 +12,7 @@ export function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     async function getProduct() {
@@ -37,36 +37,36 @@ export function ProductDetails() {
 
   const handleAddToCart = async () => {
     try {
-      await axios.post("http://localhost:1226/api/cart/add", {
+      await axios.post('http://localhost:1226/api/cart/add', {
         userId: user._id,
         productId: id,
-        quantity: 1,
+        quantity: 1
       });
-      toast.success("Added to cart");
+      toast.success('Added to cart');
     } catch (error) {
-      toast.error("Failed to add to cart");
+      toast.error('Failed to add to cart');
     }
   };
 
   const handleToggleWishlist = async () => {
     try {
       if (!isWishlisted) {
-        await axios.post("http://localhost:1226/api/wishlist/add", {
+        await axios.post('http://localhost:1226/api/wishlist/add', {
           userId: user._id,
-          productId: id,
+          productId: id
         });
         setIsWishlisted(true);
-        toast.success("Added to wishlist");
+        toast.success('Added to wishlist');
       } else {
-        await axios.post("http://localhost:1226/api/wishlist/remove", {
+        await axios.post('http://localhost:1226/api/wishlist/remove', {
           userId: user._id,
-          productId: id,
+          productId: id
         });
         setIsWishlisted(false);
-        toast.success("Removed from wishlist");
+        toast.success('Removed from wishlist');
       }
     } catch (error) {
-      toast.error("Failed to update wishlist");
+      toast.error('Failed to update wishlist');
     }
   };
 
@@ -124,13 +124,10 @@ export function ProductDetails() {
                       <button
                         onClick={handleToggleWishlist}
                         className={`p-2 rounded-full ${
-                          isWishlisted ? "text-red-500" : "text-gray-400"
+                          isWishlisted ? 'text-red-500' : 'text-gray-400'
                         } hover:text-red-500`}
                       >
-                        <Heart
-                          className="w-6 h-6"
-                          fill={isWishlisted ? "currentColor" : "none"}
-                        />
+                        <Heart className="w-6 h-6" fill={isWishlisted ? "currentColor" : "none"} />
                       </button>
                     )}
                   </div>

@@ -38,32 +38,21 @@ const loginUser = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Incorrect password" });
 
-    const { password: _, ...userData } = user.toObject();
+    const { password: _, ...userData } = user.toObject(); 
     res.status(200).json({ message: "Login successful", user: userData });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-const getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
 
 // Update Profile
 const updateProfile = async (req, res) => {
   try {
     const updates = req.body;
-    if (updates.password) delete updates.password;
+    if (updates.password) delete updates.password; 
 
-    const updated = await User.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-    }).select("-password");
+    const updated = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select("-password");
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -80,12 +69,11 @@ const forgotPassword = async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
     user.resetToken = token;
-    user.tokenExpiry = Date.now() + 3600000;
+    user.tokenExpiry = Date.now() + 3600000; 
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${token}`;
 
-    // Send email using nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -121,15 +109,24 @@ const resetPassword = async (req, res) => {
       tokenExpiry: { $gt: Date.now() },
     });
 
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired token" });
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
-    user.password = password;
+    user.password = password; 
     user.resetToken = undefined;
     user.tokenExpiry = undefined;
     await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -142,4 +139,5 @@ module.exports = {
   updateProfile,
   forgotPassword,
   resetPassword,
+
 };

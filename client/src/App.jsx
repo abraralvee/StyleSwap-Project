@@ -1,15 +1,60 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Navbar from './components/Navbar';
+import Login from './components/Login';
+import Register from './components/Register';
+import Profile from './components/Profile';
+import ForgotPassword from './components/ForgotPassword';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ProductList } from "./components/ProductList";
 import { ProductDetails } from "./components/ProductDetails";
+import ResetPassword from './components/ResetPassword';
+import Cart from './components/Cart';
+import Wishlist from './components/Wishlist';
+
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<ProductList />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-      </Routes>
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <Routes>
+          
+          <Route path="/" element={<ProductList />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        <Toaster position="top-right" />
+      </div>
     </Router>
   );
 }
