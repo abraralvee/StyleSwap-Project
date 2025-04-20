@@ -1,60 +1,25 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingCart } from "lucide-react";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import PacmanLoader from "react-spinners/PacmanLoader";
-
-// Using the same mock data
-// const mockProducts = [
-//   {
-//     _id: "1",
-//     name: "Vintage Denim Jacket",
-//     size: "M",
-//     color: "Blue",
-//     gender: "Unisex",
-//     condition: "Good",
-//     image: "https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?auto=format&fit=crop&q=80&w=800",
-//     price: "2499",
-//     duration: "30 days"
-//   },
-//   {
-//     _id: "2",
-//     name: "Summer Floral Dress",
-//     size: "S",
-//     color: "Pink",
-//     gender: "Female",
-//     condition: "Like New",
-//     image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=800",
-//     price: "1899",
-//     duration: "15 days"
-//   },
-//   {
-//     _id: "3",
-//     name: "Classic White Sneakers",
-//     size: "42",
-//     color: "White",
-//     gender: "Unisex",
-//     condition: "New",
-//     image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?auto=format&fit=crop&q=80&w=800",
-//     price: "3499",
-//     duration: "45 days"
-//   }
-// ];
+import toast from "react-hot-toast";
 
 export function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    // Connect with server
     async function getProduct() {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `http://localhost:1226/api/products/view-product/${id}`
+          "http://localhost:1226/api/products/view-product/${id}"
         );
 
         if (response.data.success) {
@@ -69,6 +34,41 @@ export function ProductDetails() {
     }
     getProduct();
   }, [id]);
+
+  const handleAddToCart = async () => {
+    try {
+      await axios.post("http://localhost:1226/api/cart/add", {
+        userId: user._id,
+        productId: id,
+        quantity: 1,
+      });
+      toast.success("Added to cart");
+    } catch (error) {
+      toast.error("Failed to add to cart");
+    }
+  };
+
+  const handleToggleWishlist = async () => {
+    try {
+      if (!isWishlisted) {
+        await axios.post("http://localhost:1226/api/wishlist/add", {
+          userId: user._id,
+          productId: id,
+        });
+        setIsWishlisted(true);
+        toast.success("Added to wishlist");
+      } else {
+        await axios.post("http://localhost:1226/api/wishlist/remove", {
+          userId: user._id,
+          productId: id,
+        });
+        setIsWishlisted(false);
+        toast.success("Removed from wishlist");
+      }
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+    }
+  };
 
   if (!product) {
     return (
@@ -116,9 +116,24 @@ export function ProductDetails() {
               </div>
               <div className="md:w-1/2 p-8">
                 <div className="mb-4">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {product.name}
-                  </h1>
+                  <div className="flex justify-between items-start">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {product.name}
+                    </h1>
+                    {user._id && (
+                      <button
+                        onClick={handleToggleWishlist}
+                        className={`p-2 rounded-full ${
+                          isWishlisted ? "text-red-500" : "text-gray-400"
+                        } hover:text-red-500`}
+                      >
+                        <Heart
+                          className="w-6 h-6"
+                          fill={isWishlisted ? "currentColor" : "none"}
+                        />
+                      </button>
+                    )}
+                  </div>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
                     {product.condition}
                   </span>
@@ -150,6 +165,16 @@ export function ProductDetails() {
                       <p className="font-medium">{product.duration}</p>
                     </div>
                   </div>
+
+                  {user._id && (
+                    <button
+                      onClick={handleAddToCart}
+                      className="mt-6 w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      Add to Cart
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
