@@ -7,7 +7,7 @@ const port = process.env.PORT || 1226;
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
-
+require("dotenv").config();
 app.use(express.static("public"));
 
 async function main() {
@@ -26,7 +26,14 @@ async function main() {
 
   //routes
   const productRoutes = require("./routes/productRoute");
-
+  const userRoutes = require("./routes/userRoute");
+  const cartRoutes = require("./routes/cartRoute");
+  const wishlistRoutes = require("./routes/wishlistRoute");
+  const orderRoutes = require('./routes/orderRoute');
+  app.use('/api/orders', orderRoutes);
+  app.use("/api/cart", cartRoutes);
+  app.use("/api/wishlist", wishlistRoutes);
+  app.use("/api/users", userRoutes);
   app.use("/api/products", productRoutes);
 
   app.listen(port, () => {

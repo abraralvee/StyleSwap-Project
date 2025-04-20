@@ -1,12 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Heart, ShoppingCart } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export function ProductCard({ product }) {
   const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking the cart button
+    try {
+      await axios.post('http://localhost:1226/api/cart/add', {
+        userId: user._id,
+        productId: product._id,
+        quantity: 1
+      });
+      toast.success('Added to cart');
+    } catch (error) {
+      toast.error('Failed to add to cart');
+    }
+  };
+
+  const handleToggleWishlist = async (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking the heart icon
+    try {
+      if (!isWishlisted) {
+        await axios.post('http://localhost:1226/api/wishlist/add', {
+          userId: user._id,
+          productId: product._id
+        });
+        setIsWishlisted(true);
+        toast.success('Added to wishlist');
+      } else {
+        await axios.post('http://localhost:1226/api/wishlist/remove', {
+          userId: user._id,
+          productId: product._id
+        });
+        setIsWishlisted(false);
+        toast.success('Removed from wishlist');
+      }
+    } catch (error) {
+      toast.error('Failed to update wishlist');
+    }
+  };
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative"
       onClick={() => navigate(`/product/${product._id}`)}
     >
       <div className="relative h-64">
@@ -18,6 +60,16 @@ export function ProductCard({ product }) {
         <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-gray-700">
           {product.condition}
         </div>
+        {user._id && (
+          <button
+            onClick={handleToggleWishlist}
+            className={`absolute top-2 left-2 p-2 rounded-full bg-white shadow-md ${
+              isWishlisted ? 'text-red-500' : 'text-gray-400'
+            } hover:text-red-500`}
+          >
+            <Heart className="w-5 h-5" fill={isWishlisted ? "currentColor" : "none"} />
+          </button>
+        )}
       </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
@@ -38,8 +90,17 @@ export function ProductCard({ product }) {
             <span className="text-gray-600">Duration:</span>
             <span className="font-medium">{product.duration}</span>
           </div>
-          <div className="pt-2 mt-2 border-t">
+          <div className="pt-2 mt-2 border-t flex justify-between items-center">
             <p className="text-xl font-bold text-indigo-600">৳{product.price}</p>
+            {user._id && (
+              <button
+                onClick={handleAddToCart}
+                className="flex items-center px-3 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+              >
+                <ShoppingCart className="w-4 h-4 mr-1" />
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </div>
