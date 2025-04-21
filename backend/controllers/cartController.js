@@ -1,12 +1,11 @@
 const Cart = require("../models/cart_items");
 
-// Add to cart
+
 const addToCart = async (req, res) => {
   const { userId, productId, quantity = 1 } = req.body;
   try {
     let cart = await Cart.findOne({ userId });
     if (cart) {
-      // Use .equals() to compare ObjectIds
       const itemIndex = cart.products.findIndex((p) => p.productId.equals(productId));
       if (itemIndex > -1) {
         cart.products[itemIndex].quantity += quantity;
@@ -24,7 +23,7 @@ const addToCart = async (req, res) => {
   }
 };
 
-// Get cart by userId
+
 const getCart = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -35,7 +34,7 @@ const getCart = async (req, res) => {
   }
 };
 
-// Remove a product from the cart
+
 const removeFromCart = async (req, res) => {
   const { userId, productId } = req.body;
   try {
@@ -57,7 +56,7 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-// Update the quantity of an existing product in the cart
+
 const updateQuantity = async (req, res) => {
   const { userId, productId, quantity } = req.body;
   try {
@@ -85,7 +84,7 @@ const updateQuantity = async (req, res) => {
   }
 };
 
-// Clear all products from the cart
+
 const clearCart = async (req, res) => {
   const { userId } = req.body;
   try {

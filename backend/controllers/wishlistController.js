@@ -1,6 +1,6 @@
 const Wishlist = require("../models/wishlist");
 
-// Add to wishlist
+
 const addToWishlist = async (req, res) => {
   const { userId, productId } = req.body;
   try {
@@ -25,7 +25,7 @@ const addToWishlist = async (req, res) => {
   }
 };
 
-// Get wishlist by userId
+
 const getWishlist = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -36,7 +36,7 @@ const getWishlist = async (req, res) => {
   }
 };
 
-// Remove product from wishlist
+
 const removeFromWishlist = async (req, res) => {
   const { userId, productId } = req.body;
   try {

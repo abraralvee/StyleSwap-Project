@@ -47,7 +47,6 @@ export function ProductList() {
   const handleApplyFilters = (filters) => {
     console.log("Applied filters:", filters);
     setActiveFilters(filters);
-    setShowFilters(false); // Close sidebar on mobile
   };
 
   const handleClearFilters = () => {
