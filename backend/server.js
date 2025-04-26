@@ -7,6 +7,7 @@ const port = process.env.PORT || 1226;
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
+
 require("dotenv").config();
 app.use(express.static("public"));
 
@@ -17,14 +18,7 @@ async function main() {
 
   console.log("Mongodb Connected Successfully!");
 
-  app.get("/", (req, res) => {
-    res.send("StyleSwap server is running:!");
-  });
-  app.get("/cloth", (req, res) => {
-    res.send("Cloth path is running");
-  });
-
-  //routes
+  // routes
   const productRoutes = require("./routes/productRoute");
   const userRoutes = require("./routes/userRoute");
   const cartRoutes = require("./routes/cartRoute");

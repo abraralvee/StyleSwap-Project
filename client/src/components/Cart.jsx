@@ -74,10 +74,10 @@ const Cart = () => {
 
     try {
       for (const item of cart.products) {
-        await axios.post('http://localhost:1226/api/orders/place', {
+        await axios.post('http://localhost:1226/api/orders/place-order', {
           userId: user._id,
           productId: item.productId._id,
-          duration: 7 // default rental period
+          duration: 7 
         });
       }
 

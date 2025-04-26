@@ -86,6 +86,12 @@ export function ProductCard({ product }) {
             <span className="text-gray-600">Gender:</span>
             <span className="font-medium">{product.gender}</span>
           </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Owner:</span>
+            <span className="font-medium">{product?.ownerId?.name || "Unknown"}</span>
+          </div>
+
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Duration:</span>
             <span className="font-medium">{product.duration}</span>

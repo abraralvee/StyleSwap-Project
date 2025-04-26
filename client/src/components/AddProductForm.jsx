@@ -17,16 +17,19 @@ export function AddProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       setIsLoading(true);
+      const user = JSON.parse(localStorage.getItem("user")); 
+  
       const response = await axios.post(
         "http://localhost:1226/api/products/add-product",
         {
           ...formData,
+          ownerId: user._id,
         }
       );
-
+  
       if (response.data.success) {
         alert("Product added");
       }
@@ -46,6 +49,7 @@ export function AddProductForm() {
       });
     }
   };
+  
 
   const handleChange = (e) => {
     setFormData((prev) => ({

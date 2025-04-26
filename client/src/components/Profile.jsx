@@ -13,26 +13,39 @@ const Profile = () => {
   });
 
   const [orders, setOrders] = useState([]);
+  const [ownerOrders, setOwnerOrders] = useState([]);
 
   const fetchOrders = async () => {
     try {
       const response = await axios.get(`http://localhost:1226/api/orders/user/${user._id}`);
       setOrders(response.data);
+      console.log('Fetched Orders:', response.data);
     } catch (error) {
-      toast.error('Failed to fetch orders');
+      //toast.error('Failed to fetch orders');
+      console.error('Error fetching orders:', error);
+    }
+  };
+
+  const fetchOwnerOrders = async () => {
+    try {
+      const response = await axios.get(`http://localhost:1226/api/orders/owner/${user._id}`);
+      setOwnerOrders(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch orders for your products');
     }
   };
 
   useEffect(() => {
     if (user?._id) {
       fetchOrders();
+      fetchOwnerOrders();
     }
   }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`http://localhost:1226/api/users/${user._id}`, formData);
+      const response = await axios.put(`http://localhost:1226/api/user/${user._id}`, formData);
       setUser(response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
       setIsEditing(false);
@@ -42,82 +55,60 @@ const Profile = () => {
     }
   };
 
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await axios.put(`http://localhost:1226/api/orders/update-status`, {
+        orderId,
+        newStatus
+      });
+      
+      toast.success('Order status updated!');
+      fetchOwnerOrders(); 
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-12">
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
           <div className="p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile</h2>
-            
+
+            {/* Profile Editing */}
             {isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      id="name"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
+                  <label className="block text-gray-700">Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full mt-1 p-2 border rounded"
+                  />
                 </div>
-
-                {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="email"
-                      id="email"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
+                  <label className="block text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full mt-1 p-2 border rounded"
+                  />
                 </div>
-
-                {/* Phone */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="tel"
-                      id="phone"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
+                  <label className="block text-gray-700">Phone</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full mt-1 p-2 border rounded"
+                  />
                 </div>
-
-                {/* Buttons */}
-                <div className="flex space-x-4">
-                  <button
-                    type="submit"
-                    className="py-2 px-4 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="py-2 px-4 rounded-md bg-white text-gray-700 border hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <button type="submit" className="py-2 px-4 rounded-md bg-green-600 text-white hover:bg-green-700">
+                  Save Changes
+                </button>
               </form>
             ) : (
               <div className="space-y-6">
@@ -151,10 +142,40 @@ const Profile = () => {
                 <ul className="space-y-4">
                   {orders.map((order) => (
                     <li key={order._id} className="bg-gray-50 p-4 rounded-md shadow-sm border">
-                      <p><strong>Product:</strong> {order.product?.name}</p>
+                      <p><strong>Product:</strong> {order.product?.name || 'Unknown'}</p>
+                      <p><strong>Product Owner:</strong> {order.product?.owner?.name || 'Unknown'}</p>
                       <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
                       <p><strong>Duration:</strong> {order.duration} days</p>
                       <p><strong>Status:</strong> {order.status}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+           {/* Orders for Products Owned by User */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Orders for My Products</h3>
+              {ownerOrders.length === 0 ? (
+                <p className="text-gray-500">No orders found.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {ownerOrders.map((order) => (
+                    <li key={order._id} className="bg-gray-50 p-4 rounded-md shadow-sm border">
+                      <p><strong>Product:</strong> {order.product?.name}</p>
+                      <p><strong>Ordered by:</strong> {order.user?.name}</p>
+                      <p><strong>Status:</strong> {order.status}</p>
+
+                      {/* Status Dropdown */}
+                      <select
+                        className="mt-2 p-2 border rounded"
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Returned">Returned</option>
+                      </select>
                     </li>
                   ))}
                 </ul>
