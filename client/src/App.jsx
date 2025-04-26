@@ -12,6 +12,7 @@ import { ProductDetails } from "./components/ProductDetails";
 import ResetPassword from './components/ResetPassword';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
+import PaymentPage from './components/PaymentPage';
 
 
 function App() {
@@ -49,6 +50,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Wishlist />
+              </ProtectedRoute>
+            }
+            />
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
               </ProtectedRoute>
             }
           />

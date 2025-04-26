@@ -35,6 +35,8 @@ async function main() {
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/products", productRoutes);
+  app.use('/api/payments', require('./routes/paymentRoute'));
+
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
