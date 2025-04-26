@@ -15,7 +15,9 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:1226/api/users/login', formData);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', response.data.token); 
+      localStorage.setItem('user', JSON.stringify(response.data.user)); 
+
       toast.success('Login successful!');
       navigate('/profile');
     } catch (error) {
