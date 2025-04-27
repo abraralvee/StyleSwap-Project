@@ -2,6 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
 
 // Signup
 const registerUser = async (req, res) => {
@@ -25,8 +26,9 @@ const registerUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
+};   
 
+// Login
 // Login
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -38,12 +40,22 @@ const loginUser = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Incorrect password" });
 
+    // Generate a JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     const { password: _, ...userData } = user.toObject(); 
-    res.status(200).json({ message: "Login successful", user: userData });
+
+    
+    res.status(200).json({ 
+      message: "Login successful", 
+      token: token, 
+      user: userData 
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // Update Profile

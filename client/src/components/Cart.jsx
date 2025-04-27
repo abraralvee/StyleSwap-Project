@@ -72,21 +72,17 @@ const Cart = () => {
       toast.error('Cart is empty');
       return;
     }
-
+  
     try {
-      const orderResponse = await axios.post('http://localhost:1226/api/orders/place', {
+      await axios.post('http://localhost:1226/api/orders/place-order', {
         userId: user._id,
-        productId: cart.products[0].productId._id,
-        duration: 7 // default rental period
       });
-
-      const orderId = orderResponse.data._id;
-      const total = cart.products.reduce((sum, item) => sum + (item.productId.price * item.quantity), 0);
-
-      navigate('/payment', { state: { total, orderId } });
+  
+      toast.success('Order placed successfully!');
+      navigate('/payment', { state: { total } });
     } catch (error) {
       toast.error('Failed to place order');
-      console.error(error);
+      console.error(error.response?.data || error.message); // 🔥 See exact backend error
     }
   };
 

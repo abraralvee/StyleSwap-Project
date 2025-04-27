@@ -1,218 +1,182 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import PaymentMethod from './PaymentMethod';
+import PaymentForm from './PaymentForm';
+import PaymentStatus from './PaymentStatus';
 
 const PaymentPage = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { total, orderId } = location.state || {};
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [formData, setFormData] = useState({
-    phoneNumber: '',
-    pin: '',
-    cardNumber: '',
-    cardHolderName: '',
-    expiryDate: '',
-    cvv: ''
-  });
-
+  
+  const [orderId, setOrderId] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('bKash');
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    if (!user._id) {
+      toast.error('You must be logged in to make a payment');
+      navigate('/login');
+      return;
+    }
+    
+    if (location.state) {
+      if (location.state.total) setTotal(location.state.total);
+      if (location.state.orderId) setOrderId(location.state.orderId);
+    } else {
+      // No payment information, redirect to cart
+      navigate('/cart');
+    }
+  }, [location, navigate, user._id]);
+  
   const paymentMethods = [
     {
-      id: 'bkash',
       name: 'bKash',
       logo: 'https://logos-download.com/wp-content/uploads/2022/01/BKash_Logo.svg'
     },
     {
-      id: 'nagad',
       name: 'Nagad',
       logo: 'https://www.logo.wine/a/logo/Nagad/Nagad-Logo.wine.svg'
     },
     {
-      id: 'card',
       name: 'Card',
       logo: 'https://www.logo.wine/a/logo/Visa_Inc./Visa_Inc.-Logo.wine.svg'
     }
   ];
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  
+  const handlePaymentMethodSelect = (method) => {
+    setSelectedPaymentMethod(method);
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  
+  const handlePaymentSubmit = async (paymentData) => {
+    setLoading(true);
+  
     try {
-      // Simulate payment processing
-      const paymentResponse = await axios.post('http://localhost:1226/api/payments/process', {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const response = await axios.post('http://localhost:1226/api/payments/process', {
         userId: user._id,
-        orderId,
         amount: total,
-        paymentMethod,
-        transactionDetails: {
-          phoneNumber: formData.phoneNumber,
-          cardNumber: formData.cardNumber,
-          cardHolderName: formData.cardHolderName,
-          expiryDate: formData.expiryDate
-        }
-      });
-
-      if (paymentResponse.data.success) {
+        paymentMethod: paymentData.paymentMethod,
+        paymentDetails: paymentData.paymentDetails
+      }); // 🔥 removed orderId
+  
+      if (response.data.success) {
+        setOrderDetails({
+          paymentMethod: paymentData.paymentMethod,
+          amount: total,
+          ...response.data.orderDetails
+        });
+        setPaymentStatus('success');
         toast.success('Payment successful!');
-        navigate('/profile');
+      } else {
+        setPaymentStatus('error');
+        toast.error(response.data.message || 'Payment failed');
       }
     } catch (error) {
+      console.error(error.response?.data || error.message);
+      setPaymentStatus('error');
       toast.error('Payment failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const renderPaymentForm = () => {
-    switch (paymentMethod) {
-      case 'bkash':
-      case 'nagad':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Enter phone number"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">PIN</label>
-              <input
-                type="password"
-                name="pin"
-                value={formData.pin}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Enter PIN"
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 'card':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Card Holder Name</label>
-              <input
-                type="text"
-                name="cardHolderName"
-                value={formData.cardHolderName}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Enter card holder name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Card Number</label>
-              <input
-                type="text"
-                name="cardNumber"
-                value={formData.cardNumber}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Enter card number"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
-                <input
-                  type="text"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  placeholder="MM/YY"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">CVV</label>
-                <input
-                  type="password"
-                  name="cvv"
-                  value={formData.cvv}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  placeholder="CVV"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  
+  
+  const handleBackToCart = () => {
+    navigate('/cart');
   };
-
+  
+  if (paymentStatus) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-12">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+          <PaymentStatus 
+            status={paymentStatus} 
+            orderId={orderId}
+            orderDetails={orderDetails}
+          />
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gray-100 py-12">
-      <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Payment Details</h2>
+            <div className="flex items-center mb-6">
+              <button
+                onClick={handleBackToCart}
+                className="mr-4 text-gray-500 hover:text-gray-700"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <h2 className="text-2xl font-bold text-gray-900">Checkout</h2>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 mr-3">
+                  <ShoppingBag className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Order Summary</h3>
+                  <p className="text-gray-500">
+                    Complete your rental purchase by making a payment
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <span className="text-lg font-medium text-gray-900">Total:</span>
+                  <span className="text-lg font-bold text-gray-900">৳{total}</span>
+                </div>
+              </div>
+            </div>
             
             <div className="mb-6">
-              <p className="text-lg font-medium text-gray-900">Total Amount: ৳{total}</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
                 Select Payment Method
-              </label>
-              <div className="grid grid-cols-3 gap-4">
+              </h3>
+              <div className="space-y-3">
                 {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`p-4 border rounded-lg flex flex-col items-center justify-center gap-2 ${
-                      paymentMethod === method.id
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-500'
-                    }`}
-                  >
-                    <img 
-                      src={method.logo} 
-                      alt={method.name} 
-                      className="h-8 object-contain"
-                    />
-                    <span className="text-sm font-medium">{method.name}</span>
-                  </button>
+                  <PaymentMethod
+                    key={method.name}
+                    method={method}
+                    selectedMethod={selectedPaymentMethod}
+                    onSelect={handlePaymentMethodSelect}
+                  />
                 ))}
               </div>
             </div>
-
-            {paymentMethod && (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {renderPaymentForm()}
-                
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  Confirm Payment
-                </button>
-              </form>
+            
+            <PaymentForm 
+              paymentMethod={selectedPaymentMethod}
+              onSubmit={handlePaymentSubmit}
+            />
+            
+            {loading && (
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className="rounded-full bg-indigo-200 h-12 w-12 flex items-center justify-center mb-4">
+                      <div className="h-8 w-8 rounded-full border-t-2 border-b-2 border-indigo-600 animate-spin"></div>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">Processing Payment</h3>
+                    <p className="text-gray-500 text-center text-sm">
+                      Please do not close this window or refresh the page.
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
