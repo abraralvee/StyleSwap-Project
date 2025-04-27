@@ -1,46 +1,58 @@
 const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  orderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['bkash', 'nagad', 'card'],
-    required: true
-  },
   paymentId: {
     type: String,
+    unique: true,
     required: true,
-    unique: true
+    default: () => `PMT-${Date.now()}`
   },
-  status: {
-    type: String,
-    enum: ['pending', 'completed', 'failed'],
-    default: 'pending'
+  order: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Order', 
+    required: true 
   },
-  transactionDetails: {
-    phoneNumber: String,
-    cardNumber: String,
+  user: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  amount: { 
+    type: Number, 
+    required: true 
+  },
+  paymentMethod: { 
+    type: String, 
+    required: true, 
+    enum: ['bKash', 'Nagad', 'Card'] 
+  },
+  paymentDetails: {
+    method: { 
+      type: String, 
+      required: true 
+    },
+    reference: { 
+      type: String, 
+      required: true 
+    },
     cardHolderName: String,
-    expiryDate: String
+    cardNumber: String,
+    expiryDate: String,
+    phoneNumber: String,
+    date: { 
+      type: Date, 
+      default: Date.now 
+    }
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  status: { 
+    type: String, 
+    default: 'Pending', 
+    enum: ['Pending', 'Completed', 'Failed'] 
   }
+}, { 
+  timestamps: true 
 });
+
 
 const Payment = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
 module.exports = Payment;

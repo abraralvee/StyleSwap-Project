@@ -3,7 +3,7 @@ const Product = require("../models/product");
 const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find()
-      .sort({ createAt: -1 })
+      .sort({ createdAt: -1 })
       .populate("ownerId", "name email"); // Populate renterId with name and email of the renter
 
     res.status(200).json({
