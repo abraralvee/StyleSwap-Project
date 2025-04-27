@@ -21,7 +21,7 @@ const placeOrderFromCart = async (req, res) => {
         user: userId,
         product: product._id,
         owner: product.ownerId,  
-        duration: item.quantity,  
+        duration: product.duration,  
         rentedAt: new Date(),
         status: 'Pending',
       });
