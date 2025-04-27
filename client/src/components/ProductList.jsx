@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Filter } from "lucide-react";
-import { ProductCard } from "./ProductCard";
+import ProductCard from "./ProductCard";
 
 import { AddProductForm } from "./AddProductForm";
 import axios from "axios";

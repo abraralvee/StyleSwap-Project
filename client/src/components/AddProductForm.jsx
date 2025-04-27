@@ -168,11 +168,11 @@ export function AddProductForm() {
           required
         >
           <option value="">Select Duration</option>
-          <option value="7">7 days</option>
-          <option value="15">15 days</option>
-          <option value="30">30 days</option>
-          <option value="45">45 days</option>
-          <option value="60">60 days</option>
+          <option value="7 days">7 days</option>
+          <option value="15 days">15 days</option>
+          <option value="30 days">30 days</option>
+          <option value="45 days">45 days</option>
+          <option value="60 days">60 days</option>
         </select>
       </div>
 
