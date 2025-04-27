@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cart, setCart] = useState({ products: [] });
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -73,16 +74,18 @@ const Cart = () => {
     }
 
     try {
-      for (const item of cart.products) {
-        await axios.post('http://localhost:1226/api/orders/place-order', {
-          userId: user._id,
-          productId: item.productId._id,
-          duration: 7 
-        });
-      }
 
-      toast.success('Order(s) placed successfully!');
-      await clearCart();
+      
+      const orderResponse = await axios.post('http://localhost:1226/api/orders/place', {
+        userId: user._id,
+        productId: cart.products[0].productId._id,
+        duration: 7 // default rental period
+      });
+
+      const orderId = orderResponse.data._id;
+      const total = cart.products.reduce((sum, item) => sum + (item.productId.price * item.quantity), 0);
+
+      navigate('/payment', { state: { total, orderId } });
     } catch (error) {
       toast.error('Failed to place order');
       console.error(error);

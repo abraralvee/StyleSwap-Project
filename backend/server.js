@@ -31,6 +31,8 @@ async function main() {
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/products", productRoutes);
+  app.use('/api/payments', require('./routes/paymentRoute'));
+
 
 app.use('/api/exchanges', exchangeRoutes);
 
