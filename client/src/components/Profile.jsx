@@ -12,29 +12,63 @@ const Profile = () => {
     phone: user.phone || '',
   });
 
-  const [orders, setOrders] = useState([]);
-
-  const fetchOrders = async () => {
-    try {
-      const response = await axios.get(`http://localhost:1226/api/orders/user/${user._id}`);
-      setOrders(response.data);
-    } catch (error) {
-      toast.error('Failed to fetch orders');
-    }
-  };
+  const [activeTab, setActiveTab] = useState('myOrders');
+  const [myOrders, setMyOrders] = useState([]);
+  const [ownerOrders, setOwnerOrders] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
   useEffect(() => {
     if (user?._id) {
-      fetchOrders();
+      fetchMyOrders();
+      fetchOwnerOrders();
+      fetchReceivedRequests();
+      fetchSentRequests();
     }
   }, [user]);
 
-  const handleSubmit = async (e) => {
+  const fetchMyOrders = async () => {
+    try {
+      const res = await axios.get(`http://localhost:1226/api/orders/user/${user._id}`);
+      setMyOrders(res.data);
+    } catch (error) {
+      console.error('Error fetching my orders:', error);
+    }
+  };
+
+  const fetchOwnerOrders = async () => {
+    try {
+      const res = await axios.get(`http://localhost:1226/api/orders/owner/${user._id}`);
+      setOwnerOrders(res.data);
+    } catch (error) {
+      console.error('Error fetching owner orders:', error);
+    }
+  };
+
+  const fetchReceivedRequests = async () => {
+    try {
+      const res = await axios.get(`http://localhost:1226/api/exchanges/received/${user._id}`);
+      setReceivedRequests(res.data.requests);
+    } catch (error) {
+      console.error('Error fetching received swap requests:', error);
+    }
+  };
+
+  const fetchSentRequests = async () => {
+    try {
+      const res = await axios.get(`http://localhost:1226/api/exchanges/sent/${user._id}`);
+      setSentRequests(res.data.requests);
+    } catch (error) {
+      console.error('Error fetching sent swap requests:', error);
+    }
+  };
+
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`http://localhost:1226/api/users/${user._id}`, formData);
-      setUser(response.data);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      const res = await axios.put(`http://localhost:1226/api/user/${user._id}`, formData);
+      setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
       setIsEditing(false);
       toast.success('Profile updated successfully!');
     } catch (error) {
@@ -42,125 +76,198 @@ const Profile = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 py-12">
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile</h2>
-            
-            {isEditing ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      id="name"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
-                </div>
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await axios.put(`http://localhost:1226/api/orders/update-status`, { orderId, newStatus });
+      toast.success('Order status updated!');
+      fetchOwnerOrders();
+    } catch (error) {
+      toast.error('Failed to update order status');
+    }
+  };
 
-                {/* Email */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="email"
-                      id="email"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-                </div>
+  const handleSwapAction = async (requestId, action) => {
+    try {
+      await axios.patch('http://localhost:1226/api/exchanges/status', { requestId, action });
+      toast.success(`Request ${action.toLowerCase()} successfully!`);
+      fetchReceivedRequests();
+    } catch (error) {
+      toast.error('Failed to update swap request status');
+    }
+  };
 
-                {/* Phone */}
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="tel"
-                      id="phone"
-                      className="pl-10 block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-                </div>
+  const handleSwapStatusChange = async (requestId, newStatus) => {
+    try {
+      await axios.patch('http://localhost:1226/api/exchanges/swap-status', { requestId, newStatus });
+      toast.success('Swap status updated!');
+      fetchReceivedRequests();
+    } catch (error) {
+      toast.error('Failed to update swap status');
+    }
+  };
 
-                {/* Buttons */}
-                <div className="flex space-x-4">
-                  <button
-                    type="submit"
-                    className="py-2 px-4 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="py-2 px-4 rounded-md bg-white text-gray-700 border hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <User className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-900">{user.name}</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-900">{user.email}</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-900">{user.phone}</span>
-                </div>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="py-2 px-4 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
-                >
-                  Edit Profile
-                </button>
-              </div>
-            )}
+  const renderSwapCard = (swap, isOwnerView) => (
+    <div key={swap._id} className="bg-gray-100 p-4 rounded shadow">
+      <p><strong>Requested By:</strong> {swap.requestedBy?.name}</p>
 
-            {/* Orders Section */}
-            <div className="mt-12">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Previous Rentals / Orders</h3>
-              {orders.length === 0 ? (
-                <p className="text-gray-500">No orders found.</p>
-              ) : (
-                <ul className="space-y-4">
-                  {orders.map((order) => (
-                    <li key={order._id} className="bg-gray-50 p-4 rounded-md shadow-sm border">
-                      <p><strong>Product:</strong> {order.product?.name}</p>
-                      <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
-                      <p><strong>Duration:</strong> {order.duration} days</p>
-                      <p><strong>Status:</strong> {order.status}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+      {swap.requestedProduct && (
+        <div className="mt-2">
+          <p className="text-sm font-semibold mb-1">Requested Product:</p>
+          <img src={swap.requestedProduct?.image} alt="Requested Product" className="w-32 h-32 object-cover rounded" />
+          <p className="text-center mt-1">{swap.requestedProduct?.name}</p>
+        </div>
+      )}
+
+      {swap.offeredProduct && (
+        <div className="mt-4">
+          <p className="text-sm font-semibold mb-1">Offered Product:</p>
+          <img src={swap.offeredProduct?.image} alt="Offered Product" className="w-32 h-32 object-cover rounded" />
+          <p className="text-center mt-1">{swap.offeredProduct?.name}</p>
+        </div>
+      )}
+
+      <p className="mt-4 font-semibold">
+        <span className="text-gray-700">Request: </span>
+        <span className={
+          swap.requestStatus === 'Accepted' ? 'text-green-600' :
+          swap.requestStatus === 'Declined' ? 'text-red-600' :
+          'text-yellow-600'
+        }>
+          {swap.requestStatus}
+        </span>
+      </p>
+
+      <p className="mt-1 font-semibold">
+        <span className="text-gray-700">Status: </span>
+        <span className={
+          swap.swapStatus === 'Shipped' ? 'text-blue-600' :
+          swap.swapStatus === 'Returned' ? 'text-purple-600' :
+          'text-yellow-600'
+        }>
+          {swap.swapStatus}
+        </span>
+      </p>
+
+      {isOwnerView && swap.requestStatus === 'Pending' && (
+        <div className="flex gap-2 mt-4">
+          <button onClick={() => handleSwapAction(swap._id, 'Accepted')} className="px-4 py-2 bg-green-600 text-white rounded">
+            Accept
+          </button>
+          <button onClick={() => handleSwapAction(swap._id, 'Declined')} className="px-4 py-2 bg-red-600 text-white rounded">
+            Decline
+          </button>
+        </div>
+      )}
+
+      {isOwnerView && (
+        <div className="mt-4">
+          <label className="block text-sm font-semibold mb-1">Update Swap Status:</label>
+          <select
+            value={swap.swapStatus}
+            onChange={(e) => handleSwapStatusChange(swap._id, e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="Pending">Pending</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Returned">Returned</option>
+          </select>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderMyOrders = () => (
+    <div className="space-y-4">
+      {myOrders.length === 0 ? (
+        <p className="text-center text-gray-500">No orders placed yet.</p>
+      ) : (
+        myOrders.map(order => (
+          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
+            <p><strong>Product:</strong> {order.product?.name}</p>
+            <p><strong>Owner:</strong> {order.product?.ownerId?.name}</p>
+            <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
+            <p><strong>Duration:</strong> {order.duration} days</p>
+            <p><strong>Status:</strong> {order.status}</p>
           </div>
+        ))
+      )}
+    </div>
+  );
+
+  const renderOwnerOrders = () => (
+    <div className="space-y-4">
+      {ownerOrders.length === 0 ? (
+        <p className="text-center text-gray-500">No one has rented your products yet.</p>
+      ) : (
+        ownerOrders.map(order => (
+          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
+            <p><strong>Product:</strong> {order.product?.name}</p>
+            <p><strong>Rented By:</strong> {order.user?.name}</p>
+            <p><strong>Status:</strong> {order.status}</p>
+            <select
+              className="mt-2 p-2 border rounded"
+              value={order.status}
+              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  const renderClosetSwaps = () => (
+    <div className="space-y-8">
+      <h3 className="text-2xl font-bold">Swap Requests for Your Products</h3>
+      {receivedRequests.length === 0 ? (
+        <p className="text-center text-gray-500">No swap requests received yet.</p>
+      ) : (
+        receivedRequests.map(swap => renderSwapCard(swap, true))
+      )}
+
+      <h3 className="text-2xl font-bold mt-10">Swap Requests You Sent</h3>
+      {sentRequests.length === 0 ? (
+        <p className="text-center text-gray-500">No swap requests sent yet.</p>
+      ) : (
+        sentRequests.map(swap => renderSwapCard(swap, false))
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-10">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-3xl font-bold mb-6 text-center">Profile</h2>
+
+          {isEditing ? (
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Name" className="w-full p-2 border rounded" />
+              <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="Email" className="w-full p-2 border rounded" />
+              <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="Phone" className="w-full p-2 border rounded" />
+              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+            </form>
+          ) : (
+            <div className="space-y-2 mb-6">
+              <div className="flex items-center gap-2"><User size={20} /> {user.name}</div>
+              <div className="flex items-center gap-2"><Mail size={20} /> {user.email}</div>
+              <div className="flex items-center gap-2"><Phone size={20} /> {user.phone}</div>
+              <button onClick={() => setIsEditing(true)} className="bg-indigo-600 text-white px-4 py-2 rounded">Edit Profile</button>
+            </div>
+          )}
+
+          <div className="flex space-x-4 border-b mb-6">
+            <button onClick={() => setActiveTab('myOrders')} className={`pb-2 ${activeTab === 'myOrders' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>My Orders</button>
+            <button onClick={() => setActiveTab('ownerOrders')} className={`pb-2 ${activeTab === 'ownerOrders' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>Orders for My Products</button>
+            <button onClick={() => setActiveTab('closetSwaps')} className={`pb-2 ${activeTab === 'closetSwaps' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>Closet Swaps</button>
+          </div>
+
+          {activeTab === 'myOrders' && renderMyOrders()}
+          {activeTab === 'ownerOrders' && renderOwnerOrders()}
+          {activeTab === 'closetSwaps' && renderClosetSwaps()}
         </div>
       </div>
     </div>

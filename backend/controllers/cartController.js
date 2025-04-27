@@ -1,41 +1,59 @@
 const Cart = require("../models/cart_items");
+const Product = require("../models/product");
 
 // Add to cart
 const addToCart = async (req, res) => {
   const { userId, productId, quantity = 1 } = req.body;
+  console.log("Incoming Data:", req.body);
+
   try {
+  
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+
     let cart = await Cart.findOne({ userId });
+
     if (cart) {
-      // Use .equals() to compare ObjectIds
+    
       const itemIndex = cart.products.findIndex((p) => p.productId.equals(productId));
       if (itemIndex > -1) {
         cart.products[itemIndex].quantity += quantity;
       } else {
+        
         cart.products.push({ productId, quantity });
       }
       await cart.save();
     } else {
-      cart = new Cart({ userId, products: [{ productId, quantity }] });
+      
+      cart = new Cart({
+        userId,
+        products: [{ productId, quantity }]
+      });
       await cart.save();
     }
+
+    
     res.status(200).json({ success: true, message: "Added to cart", cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Get cart by userId
+
 const getCart = async (req, res) => {
-  const { userId } = req.params;
+  const { renterId } = req.params;
   try {
-    const cart = await Cart.findOne({ userId }).populate("products.productId");
+    const cart = await Cart.findOne({ userId: renterId }).populate("products.productId");
     res.status(200).json({ success: true, cart });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Remove a product from the cart
+
 const removeFromCart = async (req, res) => {
   const { userId, productId } = req.body;
   try {
@@ -57,7 +75,7 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-// Update the quantity of an existing product in the cart
+
 const updateQuantity = async (req, res) => {
   const { userId, productId, quantity } = req.body;
   try {
@@ -85,7 +103,7 @@ const updateQuantity = async (req, res) => {
   }
 };
 
-// Clear all products from the cart
+
 const clearCart = async (req, res) => {
   const { userId } = req.body;
   try {
@@ -105,4 +123,10 @@ const clearCart = async (req, res) => {
   }
 };
 
-module.exports = { addToCart, getCart, removeFromCart, updateQuantity, clearCart };
+module.exports = {
+  addToCart,
+  getCart,
+  removeFromCart,
+  updateQuantity,
+  clearCart,
+};

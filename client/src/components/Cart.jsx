@@ -74,6 +74,8 @@ const Cart = () => {
     }
 
     try {
+
+      
       const orderResponse = await axios.post('http://localhost:1226/api/orders/place', {
         userId: user._id,
         productId: cart.products[0].productId._id,
