@@ -5,8 +5,6 @@ require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 1226;
-require("dotenv").config();
-
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -38,6 +36,7 @@ async function main() {
   const orderRoutes = require("./routes/orderRoute");
   const exchangeRoutes = require("./routes/exchangeRoute");
   const paymentRoutes = require("./routes/paymentRoute");
+  const reviewRoutes = require("./routes/reviewRoute");
 
   app.use("/api/orders", orderRoutes);
   app.use("/api/cart", cartRoutes);
@@ -46,6 +45,7 @@ async function main() {
   app.use("/api/products", productRoutes);
   app.use("/api/payments", paymentRoutes);
   app.use("/api/exchanges", exchangeRoutes);
+  app.use("/api/reviews", reviewRoutes);
 
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
