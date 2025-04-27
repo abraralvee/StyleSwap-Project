@@ -47,7 +47,7 @@ const getUserOrders = async (req, res) => {
       .populate({
         path: 'product',
         populate: {
-          path: 'owner', 
+          path: 'ownerId', 
           model: 'User', 
         },
       });

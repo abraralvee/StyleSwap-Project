@@ -24,11 +24,16 @@ async function main() {
   const cartRoutes = require("./routes/cartRoute");
   const wishlistRoutes = require("./routes/wishlistRoute");
   const orderRoutes = require('./routes/orderRoute');
+  const exchangeRoutes = require('./routes/exchangeRoute');
+
   app.use('/api/orders', orderRoutes);
   app.use("/api/cart", cartRoutes);
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/products", productRoutes);
+
+app.use('/api/exchanges', exchangeRoutes);
+
 
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);

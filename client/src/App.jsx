@@ -12,7 +12,7 @@ import { ProductDetails } from "./components/ProductDetails";
 import ResetPassword from './components/ResetPassword';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
-
+import ClosetSwap from './components/ClosetSwap'; // ⭐ NEW Import
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <Routes>
-          
+
           <Route path="/" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/login" element={<Login />} />
@@ -36,7 +36,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-            <Route
+
+          <Route
             path="/cart"
             element={
               <ProtectedRoute>
@@ -44,7 +45,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-            <Route
+
+          <Route
             path="/wishlist"
             element={
               <ProtectedRoute>
@@ -52,6 +54,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/closet-swap/:ownerId"
+            element={
+              <ProtectedRoute>
+                <ClosetSwap />
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
         <Toaster position="top-right" />
       </div>
