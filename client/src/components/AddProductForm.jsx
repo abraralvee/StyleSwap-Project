@@ -17,11 +17,11 @@ export function AddProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token"); // Get token from localStorage
-
+      console.log("Form Data being sent:", formData);
       const response = await axios.post(
         "http://localhost:1226/api/products/add-product",
         {

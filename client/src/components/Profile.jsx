@@ -66,7 +66,7 @@ const Profile = () => {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`http://localhost:1226/api/user/${user._id}`, formData);
+      const res = await axios.put(`http://localhost:1226/api/users/${user._id}`, formData);
       setUser(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
       setIsEditing(false);

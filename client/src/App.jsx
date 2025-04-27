@@ -8,7 +8,7 @@ import Profile from './components/Profile';
 import ForgotPassword from './components/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ProductList } from "./components/ProductList";
-import { ProductDetails } from "./components/ProductDetails";
+import { ProductDetails }  from "./components/ProductDetails";
 import ResetPassword from './components/ResetPassword';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
@@ -63,7 +63,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          
           <Route
             path="/closet-swap/:ownerId"
             element={

@@ -4,8 +4,6 @@ const Product = require("../models/product");
 // Add to cart
 const addToCart = async (req, res) => {
   const { userId, productId, quantity = 1 } = req.body;
-  console.log("Incoming Data:", req.body);
-
   try {
   
     const product = await Product.findById(productId);

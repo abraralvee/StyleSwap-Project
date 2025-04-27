@@ -1,111 +1,121 @@
-
-
-
-
-const Payment = require('../models/payment');
 const Order = require('../models/order');
 const User = require('../models/user');
-const nodemailer = require('nodemailer');
-const { v4: uuidv4 } = require('uuid');
+const Product = require('../models/product');
+const { sendPaymentConfirmationEmail, sendOwnerNotificationEmail } = require('../utils/emailService');
 
-// Configure nodemailer
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-const sendPaymentConfirmationEmail = async (user, payment) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: user.email,
-    subject: 'Payment Confirmation - StyleSwap',
-    html: `
-      <h1>Payment Confirmation</h1>
-      <p>Dear ${user.name},</p>
-      <p>Your payment has been successfully processed.</p>
-      <p>Payment Details:</p>
-      <ul>
-        <li>Amount: ৳${payment.amount}</li>
-        <li>Payment Method: ${payment.paymentMethod}</li>
-        <li>Transaction ID: ${payment.paymentId}</li>
-        <li>Date: ${new Date(payment.createdAt).toLocaleString()}</li>
-      </ul>
-      <p>Thank you for shopping with StyleSwap!</p>
-    `
-  };
-
-  await transporter.sendMail(mailOptions);
-};
-
+// Process payment for an order
 const processPayment = async (req, res) => {
+  const { userId, orderId, amount, paymentMethod, paymentDetails } = req.body;
+
   try {
-    const { userId, orderId, amount, paymentMethod, transactionDetails } = req.body;
-
-    // Validate user and order
-    const user = await User.findById(userId);
-    const order = await Order.findById(orderId);
-
-    if (!user || !order) {
-      return res.status(404).json({ success: false, message: 'User or order not found' });
-    }
-
-    // Create payment record
-    const payment = new Payment({
-      userId,
-      orderId,
-      amount,
-      paymentMethod,
-      paymentId: uuidv4(), // Generate unique payment ID
-      status: 'completed', // Simulate successful payment
-      transactionDetails
+    // Get the order(s) - in this case, we're using the userId to get all pending orders
+    const orders = await Order.find({ 
+      user: userId, 
+      status: 'Pending'
+    })
+    .populate('product')
+    .populate({
+      path: 'owner',
+      select: 'name email'
+    })
+    .populate({
+      path: 'user',
+      select: 'name email'
     });
-
-    await payment.save();
-
-    // Update order status
-    order.status = 'Paid';
-    await order.save();
-
-    // Send confirmation email
-    await sendPaymentConfirmationEmail(user, payment);
-
-    res.json({
+    
+    if (orders.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No pending orders found for this user' 
+      });
+    }
+    
+    // Process each order - update status and send emails
+    const processedOrders = [];
+    
+    for (const order of orders) {
+      // Get product details
+      const product = order.product;
+      
+      // Get owner details
+      const owner = order.owner;
+      
+      // Get user details
+      const user = order.user;
+      
+      // Update order with payment info
+      order.paymentMethod = paymentMethod;
+      order.paymentDetails = {
+        amount: amount,
+        method: paymentMethod,
+        date: new Date(),
+        // Don't store sensitive info like full card details or PINs in production!
+        // Just store last 4 digits of card or phone number for reference
+        reference: paymentMethod === 'Card' 
+          ? `XXXX-XXXX-XXXX-${paymentDetails.cardNumber.slice(-4)}` 
+          : paymentDetails.phoneNumber
+      };
+      
+      await order.save();
+      processedOrders.push(order);
+      
+      // Send emails using the new email service
+      await sendPaymentConfirmationEmail(user, order, order.paymentDetails);
+      await sendOwnerNotificationEmail(owner, order, user);
+    }
+    
+    res.status(200).json({
       success: true,
       message: 'Payment processed successfully',
-      payment
+      orderDetails: {
+        orderId: processedOrders.map(order => order._id),
+        products: processedOrders.map(order => ({
+          name: order.product.name,
+          price: order.product.price,
+          duration: order.duration
+        }))
+      }
     });
+    
   } catch (error) {
     console.error('Payment processing error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process payment'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to process payment',
+      error: error.message
     });
   }
 };
 
-const getPaymentHistory = async (req, res) => {
+// Get payment details for an order
+const getPaymentDetails = async (req, res) => {
+  const { orderId } = req.params;
+  
   try {
-    const { userId } = req.params;
-    const payments = await Payment.find({ userId })
-      .populate('orderId')
-      .sort({ createdAt: -1 });
-
-    res.json({
+    const order = await Order.findById(orderId);
+    
+    if (!order || !order.paymentDetails) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Payment details not found' 
+      });
+    }
+    
+    res.status(200).json({
       success: true,
-      payments
+      paymentDetails: order.paymentDetails
     });
+    
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch payment history'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to get payment details',
+      error: error.message
     });
   }
 };
 
 module.exports = {
   processPayment,
-  getPaymentHistory
+  getPaymentDetails
 };
