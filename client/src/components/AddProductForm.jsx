@@ -17,21 +17,29 @@ export function AddProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       setIsLoading(true);
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      console.log("Form Data being sent:", formData);
       const response = await axios.post(
         "http://localhost:1226/api/products/add-product",
         {
           ...formData,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass token here
+          },
         }
       );
 
       if (response.data.success) {
-        alert("Product added");
+        alert("Product added successfully!");
       }
     } catch (err) {
-      console.log(err);
+      console.error("Error adding product:", err.response?.data?.message || err.message);
+      alert("Failed to add product. Please check your login session.");
     } finally {
       setIsLoading(false);
       setFormData({
@@ -93,9 +101,7 @@ export function AddProductForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Gender
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Gender</label>
         <select
           name="gender"
           value={formData.gender}
@@ -104,16 +110,14 @@ export function AddProductForm() {
           required
         >
           <option value="">Select Gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="unisex">Unisex</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Unisex">Unisex</option>
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Condition
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Condition</label>
         <select
           name="condition"
           value={formData.condition}
@@ -122,17 +126,15 @@ export function AddProductForm() {
           required
         >
           <option value="">Select Condition</option>
-          <option value="new">New</option>
-          <option value="like-new">Like New</option>
-          <option value="good">Good</option>
-          <option value="fair">Fair</option>
+          <option value="New">New</option>
+          <option value="Like New">Like New</option>
+          <option value="Good">Good</option>
+          <option value="Fair">Fair</option>
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Image URL
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Image URL</label>
         <input
           type="url"
           name="image"
@@ -144,9 +146,7 @@ export function AddProductForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Price (৳)
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Price (৳)</label>
         <input
           type="number"
           name="price"
@@ -159,9 +159,7 @@ export function AddProductForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Duration
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Duration</label>
         <select
           name="duration"
           value={formData.duration}
@@ -183,7 +181,7 @@ export function AddProductForm() {
         className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:bg-indigo-400"
         disabled={isLoading}
       >
-        {isLoading ? "Adding product..." : "Add Product"}
+        {isLoading ? "Adding Product..." : "Add Product"}
       </button>
     </form>
   );

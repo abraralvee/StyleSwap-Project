@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 
 const FilterSidebar = ({
@@ -69,7 +67,7 @@ const FilterSidebar = ({
     "2 month",
   ];
 
-  // Handle checkbox/radio changes
+  // Handle checkbox
 
   const handleFilterChange = (category, value, isCheckbox = true) => {
     if (isCheckbox) {

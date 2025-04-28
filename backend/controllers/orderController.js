@@ -1,39 +1,113 @@
 const Order = require('../models/order');
-const Product = require('../models/Product');
+const Cart = require('../models/cart_items');
+const Product = require('../models/product');
 
-const placeOrder = async (req, res) => {
-  const { userId, productId, duration } = req.body;
 
-  if (!userId || !productId || !duration) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
+const placeOrderFromCart = async (req, res) => {
+  const { userId } = req.body;  
 
   try {
-    const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    
+    const cart = await Cart.findOne({ userId }).populate('products.productId');
+    if (!cart || cart.products.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty' });
+    }
 
-    const order = new Order({
-      user: userId,
-      product: productId,
-      duration,
-      rentedAt: new Date(),
-      status: 'Processing',
-    });
+    
+    const orders = [];
+    for (let item of cart.products) {
+      const product = item.productId;  
+      const order = new Order({
+        user: userId,
+        product: product._id,
+        owner: product.ownerId,  
+        duration: product.duration,  
+        rentedAt: new Date(),
+        status: 'Pending',
+      });
 
-    const savedOrder = await order.save();
-    res.status(201).json(savedOrder);
+      // Save the order
+      const savedOrder = await order.save();
+      orders.push(savedOrder);  
+    }
+
+   //clear cart
+    cart.products = [];
+    await cart.save();
+
+    res.status(201).json({ message: 'Orders placed successfully', orders });
   } catch (err) {
-    res.status(500).json({ message: 'Error placing order', error: err.message });
+    res.status(500).json({ message: 'Error placing orders', error: err.message });
   }
 };
 
 const getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.params.userId }).populate('product');
+    const orders = await Order.find({ user: req.params.userId })
+      .populate({
+        path: 'product',
+        populate: {
+          path: 'ownerId', 
+          model: 'User', 
+        },
+      });
+
     res.json(orders);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching orders' });
+    res.status(500).json({ message: 'Error fetching orders for user', error: err.message });
   }
 };
 
-module.exports = { placeOrder, getUserOrders };
+
+
+
+const getOrdersForOwner = async (req, res) => {
+  const ownerId = req.params.ownerId;
+
+  try {
+    
+    const orders = await Order.find({ owner: ownerId })
+      .populate('product') 
+      .populate('user', 'name email');  
+
+    res.json(orders);  
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching owner orders', error: err.message });
+  }
+};
+
+
+const updateOrderStatus = async (req, res) => {
+  const { orderId, newStatus } = req.body; 
+
+  if (!orderId || !newStatus) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    
+    if (!['Shipped', 'Returned'].includes(newStatus)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    
+    order.status = newStatus;
+    await order.save();
+
+    res.json({ message: 'Order status updated successfully', order });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating order status', error: err.message });
+  }
+};
+
+module.exports = {
+  placeOrderFromCart,
+  getUserOrders,
+  getOrdersForOwner,
+  updateOrderStatus,
+};
+
+const sendEmail = require("../utils/sendEmail");

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart, ShoppingCart, Repeat } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-export function ProductCard({ product }) {
+export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleAddToCart = async (e) => {
-    e.stopPropagation(); // Prevent navigation when clicking the cart button
+    e.stopPropagation();
     try {
       await axios.post('http://localhost:1226/api/cart/add', {
         userId: user._id,
@@ -24,7 +24,7 @@ export function ProductCard({ product }) {
   };
 
   const handleToggleWishlist = async (e) => {
-    e.stopPropagation(); // Prevent navigation when clicking the heart icon
+    e.stopPropagation();
     try {
       if (!isWishlisted) {
         await axios.post('http://localhost:1226/api/wishlist/add', {
@@ -45,6 +45,21 @@ export function ProductCard({ product }) {
       toast.error('Failed to update wishlist');
     }
   };
+
+  const handleClosetSwap = (e) => {
+    e.stopPropagation();
+    const ownerId = product?.ownerId?._id || product?.ownerId;
+    const requestedProductId = product._id;
+    if (ownerId && requestedProductId) {
+      navigate(`/closet-swap/${ownerId}`, {
+        state: { requestedProductId: requestedProductId },
+      });
+    } else {
+      toast.error('Owner ID or Product ID missing');
+    }
+  };
+
+  const isOwner = product?.ownerId?._id === user._id || product?.ownerId === user._id;
 
   return (
     <div 
@@ -71,6 +86,7 @@ export function ProductCard({ product }) {
           </button>
         )}
       </div>
+
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
         <div className="space-y-2">
@@ -87,19 +103,36 @@ export function ProductCard({ product }) {
             <span className="font-medium">{product.gender}</span>
           </div>
           <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Owner:</span>
+            <span className="font-medium">{product?.ownerId?.name || "Unknown"}</span>
+          </div>
+          <div className="flex justify-between text-sm">
             <span className="text-gray-600">Duration:</span>
             <span className="font-medium">{product.duration}</span>
           </div>
-          <div className="pt-2 mt-2 border-t flex justify-between items-center">
+
+          <div className="pt-2 mt-2 border-t flex justify-between items-center gap-2 flex-wrap">
             <p className="text-xl font-bold text-indigo-600">৳{product.price}</p>
             {user._id && (
-              <button
-                onClick={handleAddToCart}
-                className="flex items-center px-3 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
-              >
-                <ShoppingCart className="w-4 h-4 mr-1" />
-                Add to Cart
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="flex items-center px-3 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-1" />
+                  Add to Cart
+                </button>
+
+                {!isOwner && (
+                  <button
+                    onClick={handleClosetSwap}
+                    className="flex items-center px-3 py-1 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+                  >
+                    <Repeat className="w-4 h-4 mr-1" />
+                    Closet Swap
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
