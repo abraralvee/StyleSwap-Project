@@ -13,7 +13,7 @@ const Wishlist = () => {
     if (user._id) {
       fetchWishlist();
     } else {
-      setLoading(false); // No need to fetch if user is not logged in
+      setLoading(false); 
     }
   }, [user]);
 
