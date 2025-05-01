@@ -4,13 +4,13 @@ const Exchange = require('../models/exchange');
 
 const sendExchangeRequest = async (req, res) => {
     try {
-      // ✅ FIXED: Added requestedProductId here
+    
       const { ownerId, requestedById, offeredProductId, requestedProductId } = req.body;
 
       const newRequest = new Exchange({
         owner: ownerId,
         requestedBy: requestedById,
-        requestedProduct: requestedProductId,  // ✅ now safely available
+        requestedProduct: requestedProductId,  
         offeredProduct: offeredProductId,
         requestStatus: "Pending",
       });

@@ -10,20 +10,33 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [isAdmin, setIsAdmin] = useState(false);  // Track whether login is for admin or user
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     try {
-      const response = await axios.post('http://localhost:1226/api/users/login', formData);
-      localStorage.setItem('token', response.data.token); 
-      localStorage.setItem('user', JSON.stringify(response.data.user)); 
-
+      const loginRoute = isAdmin 
+        ? 'http://localhost:1226/api/admin/login'
+        : 'http://localhost:1226/api/users/login';
+  
+      const response = await axios.post(loginRoute, formData);
+  
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+  
       toast.success('Login successful!');
-      navigate('/profile');
+      if (response.data.user?.isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/profile');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     }
   };
+  
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -80,6 +93,19 @@ const Login = () => {
                   Forgot your password?
                 </Link>
               </div>
+            </div>
+
+            {/* Admin login toggle */}
+            <div className="mt-4">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isAdmin}
+                  onChange={() => setIsAdmin(!isAdmin)}
+                  className="form-checkbox"
+                />
+                <span className="ml-2 text-sm text-gray-600">Login as Admin</span>
+              </label>
             </div>
 
             <div>

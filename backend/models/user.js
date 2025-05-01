@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   resetToken: { type: String },
   tokenExpiry: { type: Date },
+  isBanned: { type: Boolean, default: false },
+  bannedUntil: { type: Date, default: null }, // ✅ Added for ban feature
 }, { timestamps: true });
 
 userSchema.pre("save", async function (next) {

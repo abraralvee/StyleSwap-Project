@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
@@ -10,7 +11,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-
+app.use(session({ secret: 'thisIsMySuperSecretKey123', resave: false, saveUninitialized: true }));
 async function main() {
   await mongoose.connect(
     process.env.MONGODB_URI ||
@@ -37,6 +38,7 @@ async function main() {
   const exchangeRoutes = require("./routes/exchangeRoute");
   const paymentRoutes = require("./routes/paymentRoute");
   const reviewRoutes = require("./routes/reviewRoute");
+  const adminRoutes = require("./routes/adminRoute");  // Use the new adminRoute.js for admin actions
 
   app.use("/api/orders", orderRoutes);
   app.use("/api/cart", cartRoutes);
@@ -46,6 +48,7 @@ async function main() {
   app.use("/api/payments", paymentRoutes);
   app.use("/api/exchanges", exchangeRoutes);
   app.use("/api/reviews", reviewRoutes);
+  app.use("/api/admin", adminRoutes);  //
 
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
