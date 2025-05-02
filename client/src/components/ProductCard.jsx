@@ -106,14 +106,12 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     const ownerId = product?.ownerId?._id || product?.ownerId;
     const requestedProductId = product._id;
-    if (ownerId && requestedProductId) {
-      navigate(`/closet-swap/${ownerId}`, {
-        state: { requestedProductId: requestedProductId },
-      });
-    } else {
-      toast.error('Owner ID or Product ID missing');
-    }
+  
+    localStorage.setItem('requestedProductId', requestedProductId);
+  
+    navigate(`/closet-swap/${ownerId}`);
   };
+  
 
   const isOwner = product?.ownerId?._id === user._id || product?.ownerId === user._id;
 

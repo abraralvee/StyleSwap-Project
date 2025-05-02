@@ -74,17 +74,23 @@ const Cart = () => {
     }
   
     try {
-      await axios.post('http://localhost:1226/api/orders/place-order', {
-        userId: user._id,
-      });
+      for (const item of cart.products) {
+        await axios.post('http://localhost:1226/api/orders/place-order', {
+          userId: user._id,
+          product: item.productId._id,
+          owner: item.productId.ownerId?._id || item.productId.ownerId,
+          duration: parseInt(item.productId.duration?.toString().split(" ")[0]) || 7, // fallback to 7
+        });
+      }
   
-      toast.success('Order placed successfully!');
+      toast.success('Order(s) placed successfully!');
       navigate('/payment', { state: { total } });
     } catch (error) {
       toast.error('Failed to place order');
-      console.error(error.response?.data || error.message); // 🔥 See exact backend error
+      console.error(error.response?.data || error.message);
     }
   };
+  
 
   if (loading) {
     return (
