@@ -21,7 +21,8 @@ const placeOrderFromCart = async (req, res) => {
         user: userId,
         product: product._id,
         owner: product.ownerId,  
-        duration: product.duration,  
+        duration: parseInt(product.duration?.toString().split(" ")[0]) || 7,
+  
         rentedAt: new Date(),
         status: 'Pending',
       });

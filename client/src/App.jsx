@@ -14,6 +14,8 @@ import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
 import ClosetSwap from './components/ClosetSwap'; 
 import PaymentPage from './components/PaymentPage';
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminPrivateRoute from "./pages/AdminPrivateRoute"; // ✅ from pages/
 
 function App() {
   return (
@@ -55,6 +57,17 @@ function App() {
               </ProtectedRoute>
             }
             />
+
+
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminPrivateRoute>
+                <AdminDashboard />
+              </AdminPrivateRoute>
+            }
+            />
+
           <Route
             path="/payment"
             element={
