@@ -29,7 +29,7 @@ const Login = () => {
       if (response.data.user?.isAdmin) {
         navigate('/admin/dashboard');
       } else {
-        navigate('/profile');
+        navigate('/');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
