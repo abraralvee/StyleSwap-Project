@@ -178,7 +178,7 @@ export default function ProductCard({ product }) {
           </div>
         )}
 
-        {user._id && !isAdmin && (
+        {user._id && !isAdmin && !isOwner && (
           <button
             onClick={handleToggleWishlist}
             className={`absolute top-2 left-2 p-2 rounded-full bg-white shadow-md ${
@@ -201,26 +201,25 @@ export default function ProductCard({ product }) {
 
           <div className="pt-2 mt-2 border-t flex justify-between items-center gap-2 flex-wrap">
             <p className="text-xl font-bold text-indigo-600">৳{product.price}</p>
-            {user._id && !isAdmin && (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={handleAddToCart}
-                  className="flex items-center px-3 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
-                >
-                  <ShoppingCart className="w-4 h-4 mr-1" />
-                  Add to Cart
-                </button>
-                {!isOwner && (
-                  <button
-                    onClick={handleClosetSwap}
-                    className="flex items-center px-3 py-1 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-                  >
-                    <Repeat className="w-4 h-4 mr-1" />
-                    Closet Swap
-                  </button>
-                )}
-              </div>
-            )}
+            {user._id && !isAdmin && !isOwner && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleAddToCart}
+                className="flex items-center px-3 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+              >
+                <ShoppingCart className="w-4 h-4 mr-1" />
+                Add to Cart
+              </button>
+              <button
+                onClick={handleClosetSwap}
+                className="flex items-center px-3 py-1 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+              >
+                <Repeat className="w-4 h-4 mr-1" />
+                Closet Swap
+              </button>
+            </div>
+          )}
+              
           </div>
         </div>
       </div>

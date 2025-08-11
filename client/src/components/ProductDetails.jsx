@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingCart, Repeat } from "lucide-react";
 import axios from "axios";
-import { useState, useEffect } from "react";
 import PacmanLoader from "react-spinners/PacmanLoader";
 import toast from "react-hot-toast";
 import ReviewSection from "./ReviewSection";
@@ -14,6 +13,10 @@ export function ProductDetails() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const isAdmin = user?.isAdmin === true;
+  const isOwner =
+    product?.ownerId?._id === user._id || product?.ownerId === user._id;
 
   useEffect(() => {
     async function getProduct() {
@@ -71,6 +74,14 @@ export function ProductDetails() {
     }
   };
 
+  const handleClosetSwap = () => {
+    const ownerId = product?.ownerId?._id || product?.ownerId;
+    const requestedProductId = product._id;
+
+    localStorage.setItem("requestedProductId", requestedProductId);
+    navigate(`/closet-swap/${ownerId}`);
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -122,7 +133,7 @@ export function ProductDetails() {
                       <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         {product.name}
                       </h1>
-                      {user._id && (
+                      {user._id && !isAdmin && !isOwner && (
                         <button
                           onClick={handleToggleWishlist}
                           className={`p-2 rounded-full ${
@@ -166,16 +177,31 @@ export function ProductDetails() {
                         <span className="text-gray-600">Duration</span>
                         <p className="font-medium">{product.duration}</p>
                       </div>
+                      <div className="col-span-2">
+                        <span className="text-gray-600">Owner</span>
+                        <p className="font-medium">
+                          {product?.ownerId?.name || "Unknown"}
+                        </p>
+                      </div>
                     </div>
 
-                    {user._id && (
-                      <button
-                        onClick={handleAddToCart}
-                        className="mt-6 w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        <ShoppingCart className="w-5 h-5 mr-2" />
-                        Add to Cart
-                      </button>
+                    {user._id && !isAdmin && !isOwner && (
+                      <div className="mt-6 flex gap-4">
+                        <button
+                          onClick={handleAddToCart}
+                          className="flex-1 flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <ShoppingCart className="w-5 h-5 mr-2" />
+                          Add to Cart
+                        </button>
+                        <button
+                          onClick={handleClosetSwap}
+                          className="flex-1 flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700"
+                        >
+                          <Repeat className="w-5 h-5 mr-2" />
+                          Closet Swap
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
