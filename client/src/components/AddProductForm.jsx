@@ -26,15 +26,12 @@ export function AddProductForm() {
       const token = localStorage.getItem("token");
       console.log("Form Data being sent:", formData);
 
-      const response = await axios.post(
-        "http://localhost:1226/api/products/add-product",
-        { ...formData },
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/products/add-product`, { ...formData },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
-      );
+        });
 
       if (response.data.success) {
       toast.success("✅ Product added successfully!");

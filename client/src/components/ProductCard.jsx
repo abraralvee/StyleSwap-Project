@@ -26,7 +26,7 @@ export default function ProductCard({ product }) {
   const handleRemovePost = async (e) => {
     e.stopPropagation();
     try {
-      await axios.delete(`http://localhost:1226/api/admin/remove-post/${product._id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/remove-post/${product._id}`);
       toast.success("Post removed successfully");
       window.location.reload();
     } catch (error) {
@@ -36,7 +36,7 @@ export default function ProductCard({ product }) {
 
   const handleBanUser = async (duration) => {
     try {
-      await axios.post('http://localhost:1226/api/admin/ban-user', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/ban-user`, {
         userId: product?.ownerId?._id || product?.ownerId,
         duration: duration,
         reason: 'Violation via product card'
@@ -52,7 +52,7 @@ export default function ProductCard({ product }) {
     if (user._id && !isAdmin) {
       const checkBanStatus = async () => {
         try {
-          const response = await axios.get(`http://localhost:1226/users/${user._id}`);
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${user._id}`);
           const data = response.data;
           if (data.bannedUntil && new Date(data.bannedUntil) > new Date()) {
             setIsBanned(true);
@@ -68,7 +68,7 @@ export default function ProductCard({ product }) {
   const handleAddToCart = async (e) => {
     e.stopPropagation();
     try {
-      await axios.post('http://localhost:1226/api/cart/add', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/add`, {
         userId: user._id,
         productId: product._id,
         quantity: 1
@@ -83,14 +83,14 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     try {
       if (!isWishlisted) {
-        await axios.post('http://localhost:1226/api/wishlist/add', {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/wishlist/add`, {
           userId: user._id,
           productId: product._id
         });
         setIsWishlisted(true);
         toast.success('Added to wishlist');
       } else {
-        await axios.post('http://localhost:1226/api/wishlist/remove', {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/wishlist/remove`, {
           userId: user._id,
           productId: product._id
         });

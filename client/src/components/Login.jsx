@@ -17,8 +17,8 @@ const Login = () => {
   
     try {
       const loginRoute = isAdmin 
-        ? 'http://localhost:1226/api/admin/login'
-        : 'http://localhost:1226/api/users/login';
+        ? `${import.meta.env.VITE_API_URL}/api/admin/login`
+        : `${import.meta.env.VITE_API_URL}/api/users/login`;
   
       const response = await axios.post(loginRoute, formData);
   
