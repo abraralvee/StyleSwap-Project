@@ -19,7 +19,7 @@ const Wishlist = () => {
 
   const fetchWishlist = async () => {
     try {
-      const response = await axios.get(`http://localhost:1226/api/wishlist/${user._id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/wishlist/${user._id}`);
       setWishlist(response.data.wishlist || { items: [] });
     } catch (error) {
       toast.error('Failed to fetch wishlist');
@@ -30,7 +30,7 @@ const Wishlist = () => {
 
   const removeFromWishlist = async (productId) => {
     try {
-      await axios.post('http://localhost:1226/api/wishlist/remove', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/wishlist/remove`, {
         userId: user._id,
         productId
       });
@@ -43,7 +43,7 @@ const Wishlist = () => {
 
   const addToCart = async (productId) => {
     try {
-      await axios.post('http://localhost:1226/api/cart/add', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/add`, {
         userId: user._id,
         productId,
         quantity: 1

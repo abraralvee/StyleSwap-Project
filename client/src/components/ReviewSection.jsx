@@ -17,7 +17,7 @@ const ReviewSection = ({ productId }) => {
   const fetchReviews = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1226/api/reviews/product/${productId}`
+        `${import.meta.env.VITE_API_URL}/api/reviews/product/${productId}`
       );
       if (response.data.success) {
         setReviews(response.data.data);
@@ -49,7 +49,7 @@ const ReviewSection = ({ productId }) => {
       if (editingReviewId !== null) {
         // Edit existing review
         await axios.patch(
-          `http://localhost:1226/api/reviews/edit/${editingReviewId}`,
+          `${import.meta.env.VITE_API_URL}/api/reviews/edit/${editingReviewId}`,
           {
             ...newReview,
             userId: user._id,
@@ -59,7 +59,7 @@ const ReviewSection = ({ productId }) => {
         toast.success("Review updated!");
       } else {
         // Add new review
-        await axios.post("http://localhost:1226/api/reviews/add", {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/reviews/add`, {
           ...newReview,
           userId: user._id,
           userName: user.name,
@@ -86,7 +86,7 @@ const ReviewSection = ({ productId }) => {
   const handleDeleteReview = async (reviewId) => {
     try {
       await axios.delete(
-        `http://localhost:1226/api/reviews/delete/${reviewId}`
+        `${import.meta.env.VITE_API_URL}/api/reviews/delete/${reviewId}`
       );
       toast.success("Review deleted!");
       fetchReviews();

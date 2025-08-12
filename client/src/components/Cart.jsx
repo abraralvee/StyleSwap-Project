@@ -20,7 +20,8 @@ const Cart = () => {
 
   const fetchCart = async () => {
     try {
-      const response = await axios.get(`http://localhost:1226/api/cart/${user._id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart/${user._id}`);
+      //(`http://localhost:1226/api/cart/${user._id}`);
       setCart(response.data.cart || { products: [] });
     } catch (error) {
       toast.error('Failed to fetch cart');
@@ -31,7 +32,7 @@ const Cart = () => {
 
   const updateQuantity = async (productId, quantity) => {
     try {
-      await axios.post('http://localhost:1226/api/cart/update', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/update`, {
         userId: user._id,
         productId,
         quantity
@@ -44,7 +45,7 @@ const Cart = () => {
 
   const removeItem = async (productId) => {
     try {
-      await axios.post('http://localhost:1226/api/cart/remove', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/remove`, {
         userId: user._id,
         productId
       });
@@ -57,7 +58,7 @@ const Cart = () => {
 
   const clearCart = async () => {
     try {
-      await axios.post('http://localhost:1226/api/cart/clear', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/clear`, {
         userId: user._id
       });
       fetchCart();
@@ -75,7 +76,7 @@ const Cart = () => {
   
     try {
       for (const item of cart.products) {
-        await axios.post('http://localhost:1226/api/orders/place-order', {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/cart//orders/place-order`, {
           userId: user._id,
           product: item.productId._id,
           owner: item.productId.ownerId?._id || item.productId.ownerId,

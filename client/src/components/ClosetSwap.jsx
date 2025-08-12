@@ -26,7 +26,7 @@ const ClosetSwap = () => {
 
     const fetchWishlist = async () => {
       try {
-        const response = await axios.get(`http://localhost:1226/api/wishlist/${ownerId}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/wishlist/${ownerId}`);
         if (response.data?.wishlist?.items) {
           setWishlist(response.data.wishlist.items);
         } else {
@@ -54,7 +54,7 @@ const ClosetSwap = () => {
     }
 
     try {
-      await axios.post('http://localhost:1226/api/exchanges/request', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/exchanges/request`, {
         ownerId,
         offeredProductId: selectedProductId,
         requestedById: currentUser._id,

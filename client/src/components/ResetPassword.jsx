@@ -12,7 +12,7 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:1226/api/users/reset-password/${token}`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/users/reset-password/${token}`, {
         password,
         confirmPassword,
       });

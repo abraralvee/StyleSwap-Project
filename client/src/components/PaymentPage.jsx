@@ -60,7 +60,7 @@ const PaymentPage = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const response = await axios.post('http://localhost:1226/api/payments/process', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/process`, {
         userId: user._id,
         amount: total,
         paymentMethod: paymentData.paymentMethod,
