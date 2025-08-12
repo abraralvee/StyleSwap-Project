@@ -76,7 +76,7 @@ const Cart = () => {
   
     try {
       for (const item of cart.products) {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/cart//orders/place-order`, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/orders/place-order`, {
           userId: user._id,
           product: item.productId._id,
           owner: item.productId.ownerId?._id || item.productId.ownerId,
