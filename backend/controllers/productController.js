@@ -36,6 +36,14 @@ const getProductById = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
+    // Check if user is banned
+    if (req.user.isBanned) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "You are banned and cannot add products" 
+      });
+    }
+
     const { name, size, color, gender, condition, image, price, duration } = req.body;
 
     // Check if all required fields are present
@@ -60,6 +68,7 @@ const addProduct = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 
 module.exports = {
