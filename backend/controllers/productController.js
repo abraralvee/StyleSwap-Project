@@ -31,10 +31,6 @@ const getProductById = async (req, res) => {
 // Add a new product
 const addProduct = async (req, res) => {
   try {
-    if (req.user.isBanned) {
-      return res.status(403).json({ success: false, message: "You are banned and cannot add products" });
-    }
-
     const { name, size, color, gender, condition, image, price, duration } = req.body;
 
     if (!name || !size || !color || !gender || !condition || !image || !price || !duration) {
@@ -42,6 +38,7 @@ const addProduct = async (req, res) => {
     }
 
     const product = await Product.create({
+      ownerId: req.user._id, // ← get it from token, not from req.body
       name,
       size,
       color,
@@ -50,13 +47,11 @@ const addProduct = async (req, res) => {
       image,
       price,
       duration,
-      available: true,
-      ownerId: req.user._id,
     });
 
     res.status(201).json({ success: true, data: product });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
