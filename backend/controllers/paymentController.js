@@ -8,84 +8,69 @@ const processPayment = async (req, res) => {
   const { userId, orderId, amount, paymentMethod, paymentDetails } = req.body;
 
   try {
-    // Get the order(s) - in this case, we're using the userId to get all pending orders
-    const orders = await Order.find({ 
-      user: userId, 
-      status: 'Pending'
-    })
-    .populate('product')
-    .populate({
-      path: 'owner',
-      select: 'name email'
-    })
-    .populate({
-      path: 'user',
-      select: 'name email'
-    });
-    
+    const orders = await Order.find({ user: userId, status: 'Pending' })
+      .populate('product')
+      .populate('owner')
+      .populate('user');
+
     if (orders.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'No pending orders found for this user' 
-      });
+      return res.status(404).json({ success: false, message: 'No pending orders found' });
     }
-    
-    // Process each order - update status and send emails
+
     const processedOrders = [];
-    
+
     for (const order of orders) {
-      // Get product details
       const product = order.product;
-      
-      // Get owner details
       const owner = order.owner;
-      
-      // Get user details
       const user = order.user;
-      
-      // Update order with payment info
+
+      // Update order with payment info using the total amount sent from frontend
       order.paymentMethod = paymentMethod;
       order.paymentDetails = {
-        amount: amount,
+        amount: amount, // total amount including delivery + dry cleaning already calculated
         method: paymentMethod,
         date: new Date(),
-        // Don't store sensitive info like full card details or PINs in production!
-        // Just store last 4 digits of card or phone number for reference
-        reference: paymentMethod === 'Card' 
-          ? `XXXX-XXXX-XXXX-${paymentDetails.cardNumber.slice(-4)}` 
-          : paymentDetails.phoneNumber
+        reference:
+          paymentMethod === 'Card'
+            ? `XXXX-XXXX-XXXX-${paymentDetails.cardNumber.slice(-4)}`
+            : paymentDetails.phoneNumber,
       };
-      
+
+      order.status = 'Completed';
       await order.save();
       processedOrders.push(order);
-      
-      // Send emails using the new email service
+
+      // Update product availability
+      const rentDays = parseInt(product.duration.split(" ")[0]) || 7;
+      product.available = false;
+      product.rentedUntil = new Date(Date.now() + rentDays * 24 * 60 * 60 * 1000);
+      await product.save();
+
+      // Send emails
       await sendPaymentConfirmationEmail(user, order, order.paymentDetails);
       await sendOwnerNotificationEmail(owner, order, user);
     }
-    
+
     res.status(200).json({
       success: true,
       message: 'Payment processed successfully',
-      orderDetails: {
-        orderId: processedOrders.map(order => order._id),
-        products: processedOrders.map(order => ({
-          name: order.product.name,
-          price: order.product.price,
-          duration: order.duration
-        }))
-      }
+      totalAmount: amount,
+      orderDetails: processedOrders.map(order => ({
+        orderId: order._id,
+        product: order.product.name,
+        price: order.paymentDetails.amount,
+        duration: order.duration,
+        rentedUntil: order.product.rentedUntil
+      }))
     });
-    
+
   } catch (error) {
     console.error('Payment processing error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to process payment',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to process payment', error: error.message });
   }
 };
+
+
 
 // Get payment details for an order
 const getPaymentDetails = async (req, res) => {

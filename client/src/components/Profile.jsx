@@ -12,20 +12,35 @@ const Profile = () => {
     phone: user.phone || '',
   });
 
-  const [activeTab, setActiveTab] = useState('myOrders');
+  const [activeTab, setActiveTab] = useState('myProducts');
+  const [myProducts, setMyProducts] = useState([]);
   const [myOrders, setMyOrders] = useState([]);
   const [ownerOrders, setOwnerOrders] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
 
   useEffect(() => {
-    if (user?._id) {
+    if (user?._id && user?.token) {
+      fetchMyProducts();
       fetchMyOrders();
       fetchOwnerOrders();
       fetchReceivedRequests();
       fetchSentRequests();
     }
   }, [user]);
+
+  // ==================== Fetch Functions ====================
+  const fetchMyProducts = async () => {
+    try {
+      if (!user.token) return console.error("No token found");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/my-products`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setMyProducts(res.data.data);
+    } catch (error) {
+      console.error("Error fetching my products:", error.response?.data || error.message);
+    }
+  };
 
   const fetchMyOrders = async () => {
     try {
@@ -63,10 +78,15 @@ const Profile = () => {
     }
   };
 
+  // ==================== Profile Update ====================
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user._id}`, formData);
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/users/${user._id}`,
+        formData,
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
       setUser(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
       setIsEditing(false);
@@ -76,6 +96,22 @@ const Profile = () => {
     }
   };
 
+  // ==================== Availability Toggle ====================
+  const toggleAvailability = async (productId) => {
+    try {
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/products/toggle-availability/${productId}`,
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      setMyProducts(myProducts.map(p => p._id === productId ? res.data.data : p));
+      toast.success('Availability updated!');
+    } catch (err) {
+      toast.error('Failed to update availability');
+    }
+  };
+
+  // ==================== Order & Swap Handlers ====================
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/update-status`, { orderId, newStatus });
@@ -105,6 +141,74 @@ const Profile = () => {
       toast.error('Failed to update swap status');
     }
   };
+
+  // ==================== Render Helpers ====================
+  const renderMyProducts = () => (
+    <div className="space-y-4">
+      {myProducts.length === 0 ? (
+        <p className="text-center text-gray-500">You have no products yet.</p>
+      ) : (
+        myProducts.map(product => (
+          <div key={product._id} className="bg-gray-100 p-4 rounded shadow flex justify-between items-center">
+            <div>
+              <p className="font-semibold">{product.name}</p>
+              <p className="text-sm text-gray-600">Price: {product.price}</p>
+              <p className="text-sm text-gray-600">Available: {product.available ? 'Yes' : 'No'}</p>
+            </div>
+            <button
+              onClick={() => toggleAvailability(product._id)}
+              className={`px-4 py-2 rounded ${product.available ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}
+            >
+              {product.available ? 'Mark Unavailable' : 'Mark Available'}
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  const renderMyOrders = () => (
+    <div className="space-y-4">
+      {myOrders.length === 0 ? (
+        <p className="text-center text-gray-500">No orders placed yet.</p>
+      ) : (
+        myOrders.map(order => (
+          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
+            <p><strong>Product:</strong> {order.product?.name}</p>
+            <p><strong>Owner:</strong> {order.product?.ownerId?.name}</p>
+            <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
+            <p><strong>Duration:</strong> {order.duration} days</p>
+            <p><strong>Status:</strong> {order.status}</p>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  const renderOwnerOrders = () => (
+    <div className="space-y-4">
+      {ownerOrders.length === 0 ? (
+        <p className="text-center text-gray-500">No one has rented your products yet.</p>
+      ) : (
+        ownerOrders.map(order => (
+          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
+            <p><strong>Product:</strong> {order.product?.name}</p>
+            <p><strong>Rented By:</strong> {order.user?.name}</p>
+            <p><strong>Status:</strong> {order.status}</p>
+            <select
+              className="mt-2 p-2 border rounded"
+              value={order.status}
+              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </div>
+        ))
+      )}
+    </div>
+  );
 
   const renderSwapCard = (swap, isOwnerView) => (
     <div key={swap._id} className="bg-gray-100 p-4 rounded shadow">
@@ -176,49 +280,6 @@ const Profile = () => {
     </div>
   );
 
-  const renderMyOrders = () => (
-    <div className="space-y-4">
-      {myOrders.length === 0 ? (
-        <p className="text-center text-gray-500">No orders placed yet.</p>
-      ) : (
-        myOrders.map(order => (
-          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
-            <p><strong>Product:</strong> {order.product?.name}</p>
-            <p><strong>Owner:</strong> {order.product?.ownerId?.name}</p>
-            <p><strong>Rental Date:</strong> {new Date(order.rentedAt).toLocaleDateString()}</p>
-            <p><strong>Duration:</strong> {order.duration} days</p>
-            <p><strong>Status:</strong> {order.status}</p>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  const renderOwnerOrders = () => (
-    <div className="space-y-4">
-      {ownerOrders.length === 0 ? (
-        <p className="text-center text-gray-500">No one has rented your products yet.</p>
-      ) : (
-        ownerOrders.map(order => (
-          <div key={order._id} className="bg-gray-100 p-4 rounded shadow">
-            <p><strong>Product:</strong> {order.product?.name}</p>
-            <p><strong>Rented By:</strong> {order.user?.name}</p>
-            <p><strong>Status:</strong> {order.status}</p>
-            <select
-              className="mt-2 p-2 border rounded"
-              value={order.status}
-              onChange={(e) => handleStatusChange(order._id, e.target.value)}
-            >
-              <option value="Pending">Pending</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Returned">Returned</option>
-            </select>
-          </div>
-        ))
-      )}
-    </div>
-  );
-
   const renderClosetSwaps = () => (
     <div className="space-y-8">
       <h3 className="text-2xl font-bold">Swap Requests for Your Products</h3>
@@ -237,6 +298,7 @@ const Profile = () => {
     </div>
   );
 
+  // ==================== Render ====================
   return (
     <div className="min-h-screen bg-gray-100 py-10">
       <div className="max-w-6xl mx-auto px-4">
@@ -260,11 +322,13 @@ const Profile = () => {
           )}
 
           <div className="flex space-x-4 border-b mb-6">
+            <button onClick={() => setActiveTab('myProducts')} className={`pb-2 ${activeTab === 'myProducts' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>My Products</button>
             <button onClick={() => setActiveTab('myOrders')} className={`pb-2 ${activeTab === 'myOrders' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>My Orders</button>
             <button onClick={() => setActiveTab('ownerOrders')} className={`pb-2 ${activeTab === 'ownerOrders' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>Orders for My Products</button>
             <button onClick={() => setActiveTab('closetSwaps')} className={`pb-2 ${activeTab === 'closetSwaps' ? 'border-b-2 border-indigo-600 text-indigo-600' : ''}`}>Closet Swaps</button>
           </div>
 
+          {activeTab === 'myProducts' && renderMyProducts()}
           {activeTab === 'myOrders' && renderMyOrders()}
           {activeTab === 'ownerOrders' && renderOwnerOrders()}
           {activeTab === 'closetSwaps' && renderClosetSwaps()}
